@@ -79,7 +79,7 @@ load_mntaxa <- function(base = TRUE,
   }
 
   # close database connection
-  RODBC::close(db_con)
+  RODBC::odbcClose(db_con)
 
   # invisible return value
   invisible(NULL)
