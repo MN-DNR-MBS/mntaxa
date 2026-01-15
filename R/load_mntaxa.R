@@ -1,4 +1,6 @@
-#' Load MNTaxa tables to the user's environment.
+#' Load MNTaxa tables
+#'
+#' `load_mntaxa()`loads a selection of MNTaxa tables directly from the database into the specified environment.
 #'
 #' @param base Binary option (TRUE, FALSE) to load base tables of taxa and accepted taxa.
 #' @param taxonomy_levels Binary option (TRUE, FALSE) to load tables pertaining to taxonomy levels, including rank of taxa and taxonomic parents.
@@ -10,10 +12,11 @@
 #' @param exclude Binary option (TRUE, FALSE) to load tables containing information about excluding taxa from analyses.
 #' @param envir The environment where tables will be loaded (default is user's global environment).
 #'
-#' @returns
+#' @returns Requested tables
 #' @export
 #'
 #' @examples
+#' load_mntaxa()
 load_mntaxa <- function(base = TRUE,
                         taxonomy_levels = FALSE,
                         sources = FALSE,
