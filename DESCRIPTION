@@ -1,0 +1,12 @@
+Package: mntaxa
+Title: Load and format MnTaxa tables for analysis
+Version: 0.0.0.9000
+Authors@R: 
+    person("Amy", "Kendig", , "amy.kendig@state.mn.us", role = c("aut", "cre"))
+Description: The mntaxa R package is designed for users who have direct access to the MNTaxa database to load and format MNTaxa tables for analysis. Users must first configure the MNTaxa ODBC DSN on their computers before using the package. Functions included in this package allow users to select which tables to load, create a look-up table of accepted taxa, and create tables of taxonomic levels, sources/authorities, physiognomy, origin, common names, and c-values. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports:
+  RODBC
