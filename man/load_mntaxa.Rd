@@ -5,7 +5,8 @@
 \title{Load MNTaxa tables}
 \usage{
 load_mntaxa(
-  base = TRUE,
+  accepted = TRUE,
+  all_taxa = TRUE,
   taxonomy_levels = FALSE,
   sources = FALSE,
   phys = FALSE,
@@ -17,7 +18,9 @@ load_mntaxa(
 )
 }
 \arguments{
-\item{base}{Binary option (TRUE, FALSE) to load base tables of taxa and accepted taxa.}
+\item{accepted}{Binary option (TRUE, FALSE) to load accepted taxa table.}
+
+\item{all_taxa}{Binary option (TRUE, FALSE) to load all taxa table.}
 
 \item{taxonomy_levels}{Binary option (TRUE, FALSE) to load tables pertaining to taxonomy levels, including rank of taxa and taxonomic parents.}
 

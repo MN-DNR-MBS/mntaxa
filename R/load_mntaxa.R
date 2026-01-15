@@ -2,7 +2,8 @@
 #'
 #' `load_mntaxa()`loads a selection of MNTaxa tables directly from the database into the specified environment.
 #'
-#' @param base Binary option (TRUE, FALSE) to load base tables of taxa and accepted taxa.
+#' @param accepted Binary option (TRUE, FALSE) to load accepted taxa table.
+#' @param all_taxa Binary option (TRUE, FALSE) to load all taxa table.
 #' @param taxonomy_levels Binary option (TRUE, FALSE) to load tables pertaining to taxonomy levels, including rank of taxa and taxonomic parents.
 #' @param sources Binary option (TRUE, FALSE) to load tables for authorities and publications.
 #' @param phys Binary option (TRUE, FALSE) to load physiognomy tables.
@@ -17,7 +18,8 @@
 #'
 #' @examples
 #' load_mntaxa()
-load_mntaxa <- function(base = TRUE,
+load_mntaxa <- function(accepted = TRUE,
+                        all_taxa = TRUE,
                         taxonomy_levels = FALSE,
                         sources = FALSE,
                         phys = FALSE,
@@ -55,29 +57,29 @@ load_mntaxa <- function(base = TRUE,
 
   # physiognomy
   if (phys == TRUE) {
-    assign("phys", RODBC::sqlFetch(db_con, "plants.physiognomies"), envir = envir)
+    assign("phys_codes", RODBC::sqlFetch(db_con, "plants.physiognomies"), envir = envir)
     assign("syn_phys", RODBC::sqlFetch(db_con, "plants.physiognomies_synonymies"), envir = envir)
   }
 
   # origin
   if (origin == TRUE) {
-    assign("origin", RODBC::sqlFetch(db_con, "plants.native_statuses"), envir = envir)
+    assign("origin_codes", RODBC::sqlFetch(db_con, "plants.native_statuses"), envir = envir)
     assign("syn_or", RODBC::sqlFetch(db_con, "plants.synonymies"), envir = envir)
   }
 
   # common names
   if (common == TRUE) {
-    assign("comms", RODBC::sqlFetch(db_con, "plants.common_names"), envir = envir)
+    assign("syn_comm", RODBC::sqlFetch(db_con, "plants.common_names"), envir = envir)
   }
 
   # c-values
   if (cvals == TRUE) {
-    assign("cvals", RODBC::sqlFetch(db_con, "plants.conservationism_coefficients"), envir = envir)
+    assign("syn_cvals", RODBC::sqlFetch(db_con, "plants.conservationism_coefficients"), envir = envir)
   }
 
   # exclusions
   if (exclude == TRUE) {
-    assign("exclude", RODBC::sqlFetch(db_con, "plants.excluded_reasons_synonymies"), envir = envir)
+    assign("syn_exclude", RODBC::sqlFetch(db_con, "plants.excluded_reasons_synonymies"), envir = envir)
     assign("exclude_codes", RODBC::sqlFetch(db_con, "plants.excluded_reasons"), envir = envir)
   }
 
