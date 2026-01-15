@@ -28,7 +28,6 @@ load_mntaxa <- function(accepted = TRUE,
                         cvals = FALSE,
                         exclude = FALSE,
                         envir = parent.frame()) {
-
   # connect to mntaxa database
   db_con <- RODBC::odbcConnect("MNTaxa")
 
