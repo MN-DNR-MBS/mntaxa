@@ -2,7 +2,7 @@
 #'
 #' `load_mntaxa()`loads a selection of MNTaxa tables directly from the database into the specified environment.
 #'
-#' @param accepted Binary option (TRUE, FALSE) to load accepted taxa table.
+#' @param synonymies Binary option (TRUE, FALSE) to load synonymy table.
 #' @param all_taxa Binary option (TRUE, FALSE) to load all taxa table.
 #' @param taxonomy_levels Binary option (TRUE, FALSE) to load tables pertaining to taxonomy levels, including rank of taxa and taxonomic parents.
 #' @param sources Binary option (TRUE, FALSE) to load tables for authorities and publications.
@@ -18,7 +18,7 @@
 #'
 #' @examples
 #' load_mntaxa()
-load_mntaxa <- function(accepted = TRUE,
+load_mntaxa <- function(synonymies = TRUE,
                         all_taxa = TRUE,
                         taxonomy_levels = FALSE,
                         sources = FALSE,
@@ -36,10 +36,14 @@ load_mntaxa <- function(accepted = TRUE,
     stop("Failed to connect to MNTaxa database. Ensure the ODBC DSN 'MNTaxa' is configured on this machine.")
   }
 
-  # base tables
-  if (base == TRUE) {
-    assign("taxa", RODBC::sqlFetch(db_con, "plants.taxa"), envir = envir)
+  # synonymies
+  if (synonymies == TRUE) {
     assign("syns", RODBC::sqlFetch(db_con, "plants.synonymies_taxa"), envir = envir)
+  }
+
+  # all taxa
+  if (all_taxa == TRUE) {
+    assign("taxa", RODBC::sqlFetch(db_con, "plants.taxa"), envir = envir)
   }
 
   # taxonomy levels

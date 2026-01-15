@@ -21,7 +21,7 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
                             cvals = FALSE,
                             exclude = FALSE) {
   # check if accepted and all taxa tables are missing
-  missing_accepted <- !exists("syns", envir = parent.frame())
+  missing_synonymies <- !exists("syns", envir = parent.frame())
   missing_taxa <- !exists("taxa", envir = parent.frame())
 
   # check each optional set individually
@@ -34,9 +34,9 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
   missing_exclude <- exclude && !all(c("syn_exclude", "exclude_codes") %in% ls(envir = parent.frame()))
 
   # load only if something is missing
-  if (missing_accepted || missing_taxa || missing_taxonomy || missing_sources || missing_phys || missing_origin || missing_common || missing_cvals || missing_exclude) {
-    load_mnnpc(
-      accepted = missing_accepted,
+  if (missing_synonymies || missing_taxa || missing_taxonomy || missing_sources || missing_phys || missing_origin || missing_common || missing_cvals || missing_exclude) {
+    load_mntaxa(
+      synonymies = missing_synonymies,
       all_taxa = missing_taxa,
       taxonomy_levels = missing_taxonomy,
       sources = missing_sources,
@@ -55,7 +55,9 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
   )
 
   # add taxon name and any additional info
-  dat <- syns |>
+  dat <- syns %>%
+    dplyr::filter(!is.na(d_list_beg_date) & is.na(d_list_end_date)) |>
+    dplyr::distinct(taxon_id, synonymy_id) |>
     dplyr::left_join(taxa2)
 
   # add physcodes

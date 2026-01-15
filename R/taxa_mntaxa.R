@@ -19,8 +19,8 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
 
   # load only if something is missing
   if (missing_taxa || missing_taxonomy || missing_sources) {
-    load_mnnpc(
-      accepted = FALSE,
+    load_mntaxa(
+      synonymies = FALSE,
       all_taxa = missing_taxa,
       taxonomy_levels = missing_taxonomy,
       sources = missing_sources,
@@ -37,22 +37,26 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
   dat <- taxa |>
     dplyr::rename(taxon_id = id) |>
     dplyr::mutate(
-      hybrid = if_else(str_detect(taxon, "×") | is_hybrid == 1, taxon,
-        NA_character_
+      hybrid = dplyr::if_else(stringr::str_detect(taxon, "×") |
+                                is_hybrid == 1, taxon,
+                              NA_character_
       ) |>
-        str_replace_all("\\ x\\ ", "\\ ×\\ ") |>
-        str_replace_all("\\ x", "\\ ×"),
-      hybrid = if_else(str_sub(hybrid, 1, 1) == "x",
+        stringr::str_replace_all("\\ x\\ ", "\\ ×\\ ") |>
+        stringr::str_replace_all("\\ x", "\\ ×"),
+      hybrid = dplyr::if_else(stringr::str_sub(hybrid, 1, 1) == "x",
         sub("^.", "×", hybrid),
         hybrid
       ),
-      taxon = if_else(!is.na(hybrid),
+      taxon = dplyr::if_else(!is.na(hybrid),
         hybrid |>
-          str_replace_all("×", "x ") |>
-          str_replace_all("x  ", "x "),
+          stringr::str_replace_all("×", "x ") |>
+          stringr::str_replace_all("x  ", "x "),
         taxon |>
-          str_remove("\\\t")
-      )
+          stringr::str_remove("\\\t")
+      ),
+      hybrid_parents = stringr::str_replace(hybrid_parents, "\\ X\\ ",
+                                            "\\ x\\ ") |>
+        stringr::str_replace("\\ ×\\ ", "\\ x\\ ")
     )
 
 
@@ -83,6 +87,11 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
         ) |>
         dplyr::select(publication_id, publication))
   }
+
+  # remove unnecessary ID columns
+  dat <- dat |>
+    dplyr::select(-c(author_id, rank_id, publication_id, is_hybrid, begin_date,
+                     end_date, created_at, updated_at))
 
   # return
   return(dat |>
