@@ -6,63 +6,61 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
                             cvals = FALSE,
                             exclude = FALSE) {
 
-  # check if accepted and all taxa tables are missing
-  missing_synonymies <- !exists("syns_raw", envir = parent.frame())
-  missing_taxa <- !exists("taxa_raw", envir = parent.frame())
-
-  # load only if something is missing
-  if (missing_synonymies || missing_taxa) {
-    load_mntaxa(
-      synonymies = missing_synonymies,
-      all_taxa = missing_taxa
-    )
-  }
-
   # format taxa names
   taxa <- taxa_mntaxa(
     taxonomy_levels = taxonomy_levels,
     sources = sources
   )
 
+  # format accepted names
+  acc <- accepted_mntaxa(
+    taxonomy_levels = taxonomy_levels,
+    sources = sources,
+    phys = phys,
+    origin = origin,
+    common = common,
+    cvals = cvals,
+    exclude = exclude
+  ) |>
+    dplyr::rename_with(.fn = ~paste("acc", .x, sep = "_")) |>
+    dplyr::mutate(synonymy_id = acc_synonymy_id)
+
   # synonymy table
   syns <- syns_raw |>
     dplyr::left_join(taxa)
 
-  # get accepted names
-  dlist <- accepted_mntaxa() |>
-    dplyr::rename(dlist_id = taxon_id,
-           dlist_taxon = taxon,
-           dlist_hybrid = hybrid,
-           dlist_rank = rank) |>
-    dplyr::mutate(dlist_synonymy_id = synonymy_id)
-
   # synonyms of d-list
-  dlist_syns <- dlist |>
+  acc_syns <- acc |>
     dplyr::left_join(syns |>
-                       dplyr::select(synonymy_id, taxon_id, rank))
+                       dplyr::select(synonymy_id, colnames(taxa)))
 
-  # add new dlist_id to the retired d-list taxon's synonymy group
+  # add new acc_id to the retired d-list taxon's synonymy group
   # some retired synonymies do not have current d-list matches
-  dlist_rep <- syns |>
+  acc_rep <- syns |>
     dplyr::filter(!is.na(d_list_beg_date) & !is.na(d_list_end_date) &
-             !(synonymy_id %in% dlist_syns$synonymy_id)) |>
+             !(synonymy_id %in% acc_syns$synonymy_id)) |>
     dplyr::distinct(taxon_id, synonymy_id) |>
-    dplyr::inner_join(dlist_syns |>
-                        dplyr::distinct(taxon_id, dlist_id, dlist_taxon, dlist_hybrid,
-                          dlist_rank, dlist_synonymy_id),
+    dplyr::inner_join(acc_syns |>
+                        dplyr::select(taxon_id, starts_with("acc")) |>
+                        dplyr::distinct(),
                relationship = "many-to-many") |>
-    dplyr::distinct(dlist_id, dlist_taxon, dlist_hybrid, dlist_rank, synonymy_id,
-             dlist_synonymy_id)
+    dplyr::select(colnames(acc)) |>
+    dplyr::distinct()
 
-  # update synonyms of dlist
+  # update synonyms of acc
   # remove duplication from multiple synonymies
-  dlist_syns2 <- syns |>
-    dplyr::right_join(dlist |>
-                 rbind(dlist_rep),
+  acc_syns2 <- syns |>
+    dplyr::select(taxon_id, synonymy_id, colnames(taxa)) |>
+    dplyr::right_join(acc |>
+                 rbind(acc_rep),
                relationship = "many-to-many") |>
-    dplyr::distinct(taxon_id, taxon, hybrid, rank, dlist_id, dlist_taxon, dlist_rank,
-             dlist_hybrid, dlist_synonymy_id) |>
-    dplyr::rename(synonymy_id = dlist_synonymy_id)
+    dplyr::select(-synonymy_id) |>
+    dplyr::distinct() |>
+    dplyr::rename(synonymy_id = acc_synonymy_id)
+
+  # return lookup table
+  return(acc_syns2 |>
+           tibble::as_tibble())
 
 
 }

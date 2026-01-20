@@ -5,7 +5,7 @@
 \title{Load MNTaxa tables}
 \usage{
 load_mntaxa(
-  accepted = TRUE,
+  synonymies = TRUE,
   all_taxa = TRUE,
   taxonomy_levels = FALSE,
   sources = FALSE,
@@ -14,11 +14,11 @@ load_mntaxa(
   common = FALSE,
   cvals = FALSE,
   exclude = FALSE,
-  envir = parent.frame()
+  envir = .GlobalEnv
 )
 }
 \arguments{
-\item{accepted}{Binary option (TRUE, FALSE) to load accepted taxa table.}
+\item{synonymies}{Binary option (TRUE, FALSE) to load synonymy table.}
 
 \item{all_taxa}{Binary option (TRUE, FALSE) to load all taxa table.}
 
