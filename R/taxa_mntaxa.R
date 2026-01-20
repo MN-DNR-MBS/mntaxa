@@ -11,11 +11,11 @@
 taxa_mntaxa <- function(taxonomy_levels = FALSE,
                         sources = FALSE) {
   # check if all taxa table is missing
-  missing_taxa <- !exists("taxa", envir = parent.frame())
+  missing_taxa <- !exists("taxa_raw", envir = parent.frame())
 
   # check each optional set individually
-  missing_taxonomy <- taxonomy_levels && !all(c("pars", "rank") %in% ls(envir = parent.frame()))
-  missing_sources <- sources && !all(c("auth", "pubs") %in% ls(envir = parent.frame()))
+  missing_taxonomy <- taxonomy_levels && !all(c("pars_raw", "rank_raw") %in% ls(envir = parent.frame()))
+  missing_sources <- sources && !all(c("auth_raw", "pubs_raw") %in% ls(envir = parent.frame()))
 
   # load only if something is missing
   if (missing_taxa || missing_taxonomy || missing_sources) {
@@ -34,7 +34,7 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
 
   # save hybrid name with symbol and without
   # remove \t at end of one name
-  dat <- taxa |>
+  dat <- taxa_raw |>
     dplyr::rename(taxon_id = id) |>
     dplyr::mutate(
       hybrid = dplyr::if_else(stringr::str_detect(taxon, "×") |
@@ -56,17 +56,19 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
       ),
       hybrid_parents = stringr::str_replace(hybrid_parents, "\\ X\\ ",
                                             "\\ x\\ ") |>
-        stringr::str_replace("\\ ×\\ ", "\\ x\\ ")
+        stringr::str_replace("\\ ×\\ ", "\\ x\\ "),
+      hybrid_parents = if_else(hybrid_parents == "", NA_character_,
+                               hybrid_parents)
     )
 
 
   # add taxonomy if selected
   if (taxonomy_levels) {
     dat <- dat |>
-      dplyr::left_join(rank |>
+      dplyr::left_join(rank_raw |>
         dplyr::rename(rank_id = id) |>
         dplyr::select(rank_id, rank)) |>
-      dplyr::left_join(pars |>
+      dplyr::left_join(pars_raw |>
         dplyr::select(taxon_id, parent_id) |>
         dplyr::left_join(dat |>
           dplyr::transmute(taxon_id,
@@ -77,10 +79,10 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
   # add sources if selected
   if (sources) {
     dat <- dat |>
-      dplyr::left_join(auth |>
+      dplyr::left_join(auth_raw |>
         dplyr::rename(author_id = id) |>
         dplyr::select(author_id, author)) |>
-      dplyr::left_join(pubs |>
+      dplyr::left_join(pubs_raw |>
         dplyr::rename(
           publication_id = id,
           publication = title

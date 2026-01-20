@@ -21,17 +21,17 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
                             cvals = FALSE,
                             exclude = FALSE) {
   # check if accepted and all taxa tables are missing
-  missing_synonymies <- !exists("syns", envir = parent.frame())
-  missing_taxa <- !exists("taxa", envir = parent.frame())
+  missing_synonymies <- !exists("syns_raw", envir = parent.frame())
+  missing_taxa <- !exists("taxa_raw", envir = parent.frame())
 
   # check each optional set individually
-  missing_taxonomy <- taxonomy_levels && !all(c("pars", "rank") %in% ls(envir = parent.frame()))
-  missing_sources <- sources && !all(c("auth", "pubs") %in% ls(envir = parent.frame()))
-  missing_phys <- phys && !all(c("phys_codes", "syn_phys") %in% ls(envir = parent.frame()))
-  missing_origin <- origin && !all(c("origin_codes", "syn_or") %in% ls(envir = parent.frame()))
-  missing_common <- common && !exists("syn_comm", envir = parent.frame())
-  missing_cvals <- cvals && !exists("syn_cvals", envir = parent.frame())
-  missing_exclude <- exclude && !all(c("syn_exclude", "exclude_codes") %in% ls(envir = parent.frame()))
+  missing_taxonomy <- taxonomy_levels && !all(c("pars_raw", "rank_raw") %in% ls(envir = parent.frame()))
+  missing_sources <- sources && !all(c("auth_raw", "pubs_raw") %in% ls(envir = parent.frame()))
+  missing_phys <- phys && !all(c("phys_codes_raw", "syn_phys_raw") %in% ls(envir = parent.frame()))
+  missing_origin <- origin && !all(c("origin_codes_raw", "syn_or_raw") %in% ls(envir = parent.frame()))
+  missing_common <- common && !exists("syn_comm_raw", envir = parent.frame())
+  missing_cvals <- cvals && !exists("syn_cvals_raw", envir = parent.frame())
+  missing_exclude <- exclude && !all(c("syn_exclude_raw", "exclude_codes_raw") %in% ls(envir = parent.frame()))
 
   # load only if something is missing
   if (missing_synonymies || missing_taxa || missing_taxonomy || missing_sources || missing_phys || missing_origin || missing_common || missing_cvals || missing_exclude) {
@@ -55,7 +55,7 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
   )
 
   # add taxon name and any additional info
-  dat <- syns %>%
+  dat <- syns_raw %>%
     dplyr::filter(!is.na(d_list_beg_date) & is.na(d_list_end_date)) |>
     dplyr::distinct(taxon_id, synonymy_id) |>
     dplyr::left_join(taxa2)
@@ -63,8 +63,8 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
   # add physcodes
   if (phys) {
     # add phys names and codes to synonymy IDs
-    syn_phys2 <- syn_phys |>
-      dplyr::left_join(phys_codes |>
+    syn_phys <- syn_phys_raw |>
+      dplyr::left_join(phys_codes_raw |>
         dplyr::transmute(
           physiognomy_id = id,
           physiognomy,
@@ -80,14 +80,14 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
 
     # add to data
     dat <- dat |>
-      dplyr::left_join(syn_phys2)
+      dplyr::left_join(syn_phys)
   }
 
   # add origin
   if (origin) {
     # add status to synonymy IDs
-    syn_or2 <- syn_or |>
-      dplyr::left_join(origin_codes |>
+    syn_or <- syn_or_raw |>
+      dplyr::left_join(origin_codes_raw |>
         dplyr::transmute(
           native_status_id = id,
           native_status
@@ -106,13 +106,13 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
 
     # add to data
     dat <- dat |>
-      dplyr::left_join(syn_or2)
+      dplyr::left_join(syn_or)
   }
 
   # add origin
   if (common) {
     # add collapse names by synonymy ID
-    syn_comm2 <- syn_comm |>
+    syn_comm <- syn_comm_raw |>
       dplyr::group_by(synonymy_id) |>
       dplyr::summarize(
         common_name = paste(sort(unique(common_name)), collapse = "/"),
@@ -121,13 +121,13 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
 
     # add to data
     dat <- dat |>
-      dplyr::left_join(syn_comm2)
+      dplyr::left_join(syn_comm)
   }
 
   # add c-values
   if (cvals) {
     # add collapse names by synonymy ID
-    syn_cvals2 <- syn_cvals |>
+    syn_cvals <- syn_cvals_raw |>
       dplyr::filter(conservationism_coefficient %in% 0:10 & is.na(end_date)) |>
       dplyr::group_by(synonymy_id) |>
       dplyr::mutate(cvals = n_distinct(conservationism_coefficient)) |>
@@ -138,15 +138,15 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
 
     # add to data
     dat <- dat |>
-      dplyr::left_join(syn_cvals2)
+      dplyr::left_join(syn_cvals)
   }
 
   # exclusion info
   if (exclude) {
     # add descriptions to synonymy
-    syn_exclude2 <- syn_exclude |>
+    syn_exclude <- syn_exclude_raw |>
       dplyr::filter(!is.na(begin_date) & is.na(end_date)) |>
-      dplyr::left_join(exclude_codes |>
+      dplyr::left_join(exclude_codes_raw |>
         dplyr::transmute(
           excluded_reason_id = id,
           excluded_code = excluded_reason_code,
@@ -156,7 +156,7 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
 
     # add to data
     dat <- dat |>
-      dplyr::left_join(syn_exclude2)
+      dplyr::left_join(syn_exclude)
   }
 
   # return

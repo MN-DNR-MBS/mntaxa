@@ -38,52 +38,52 @@ load_mntaxa <- function(synonymies = TRUE,
 
   # synonymies
   if (synonymies == TRUE) {
-    assign("syns", RODBC::sqlFetch(db_con, "plants.synonymies_taxa"), envir = envir)
+    assign("syns_raw", RODBC::sqlFetch(db_con, "plants.synonymies_taxa"), envir = envir)
   }
 
   # all taxa
   if (all_taxa == TRUE) {
-    assign("taxa", RODBC::sqlFetch(db_con, "plants.taxa"), envir = envir)
+    assign("taxa_raw", RODBC::sqlFetch(db_con, "plants.taxa"), envir = envir)
   }
 
   # taxonomy levels
   if (taxonomy_levels == TRUE) {
-    assign("pars", RODBC::sqlFetch(db_con, "plants.parents_taxa"), envir = envir)
-    assign("rank", RODBC::sqlFetch(db_con, "plants.ranks"), envir = envir)
+    assign("pars_raw", RODBC::sqlFetch(db_con, "plants.parents_taxa"), envir = envir)
+    assign("rank_raw", RODBC::sqlFetch(db_con, "plants.ranks"), envir = envir)
   }
 
   # sources
   if (sources == TRUE) {
-    assign("auth", RODBC::sqlFetch(db_con, "plants.authors"), envir = envir)
-    assign("pubs", RODBC::sqlFetch(db_con, "plants.publications"), envir = envir)
+    assign("auth_raw", RODBC::sqlFetch(db_con, "plants.authors"), envir = envir)
+    assign("pubs_raw", RODBC::sqlFetch(db_con, "plants.publications"), envir = envir)
   }
 
   # physiognomy
   if (phys == TRUE) {
-    assign("phys_codes", RODBC::sqlFetch(db_con, "plants.physiognomies"), envir = envir)
-    assign("syn_phys", RODBC::sqlFetch(db_con, "plants.physiognomies_synonymies"), envir = envir)
+    assign("phys_codes_raw", RODBC::sqlFetch(db_con, "plants.physiognomies"), envir = envir)
+    assign("syn_phys_raw", RODBC::sqlFetch(db_con, "plants.physiognomies_synonymies"), envir = envir)
   }
 
   # origin
   if (origin == TRUE) {
-    assign("origin_codes", RODBC::sqlFetch(db_con, "plants.native_statuses"), envir = envir)
-    assign("syn_or", RODBC::sqlFetch(db_con, "plants.synonymies"), envir = envir)
+    assign("origin_codes_raw", RODBC::sqlFetch(db_con, "plants.native_statuses"), envir = envir)
+    assign("syn_or_raw", RODBC::sqlFetch(db_con, "plants.synonymies"), envir = envir)
   }
 
   # common names
   if (common == TRUE) {
-    assign("syn_comm", RODBC::sqlFetch(db_con, "plants.common_names"), envir = envir)
+    assign("syn_comm_raw", RODBC::sqlFetch(db_con, "plants.common_names"), envir = envir)
   }
 
   # c-values
   if (cvals == TRUE) {
-    assign("syn_cvals", RODBC::sqlFetch(db_con, "plants.conservationism_coefficients"), envir = envir)
+    assign("syn_cvals_raw", RODBC::sqlFetch(db_con, "plants.conservationism_coefficients"), envir = envir)
   }
 
   # exclusions
   if (exclude == TRUE) {
-    assign("syn_exclude", RODBC::sqlFetch(db_con, "plants.excluded_reasons_synonymies"), envir = envir)
-    assign("exclude_codes", RODBC::sqlFetch(db_con, "plants.excluded_reasons"), envir = envir)
+    assign("syn_exclude_raw", RODBC::sqlFetch(db_con, "plants.excluded_reasons_synonymies"), envir = envir)
+    assign("exclude_codes_raw", RODBC::sqlFetch(db_con, "plants.excluded_reasons"), envir = envir)
   }
 
   # close database connection
