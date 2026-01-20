@@ -27,7 +27,7 @@ load_mntaxa <- function(synonymies = TRUE,
                         common = FALSE,
                         cvals = FALSE,
                         exclude = FALSE,
-                        envir = parent.frame()) {
+                        envir = .GlobalEnv) {
   # connect to mntaxa database
   db_con <- RODBC::odbcConnect("MNTaxa")
 
