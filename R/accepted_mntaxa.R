@@ -49,16 +49,16 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
   }
 
   # format taxa names
-  taxa2 <- taxa_mntaxa(
+  taxa <- taxa_mntaxa(
     taxonomy_levels = taxonomy_levels,
     sources = sources
   )
 
-  # add taxon name and any additional info
-  dat <- syns_raw %>%
+  # add taxon name and optionally taxonomy levels and sources
+  dat <- syns_raw |>
     dplyr::filter(!is.na(d_list_beg_date) & is.na(d_list_end_date)) |>
     dplyr::distinct(taxon_id, synonymy_id) |>
-    dplyr::left_join(taxa2)
+    dplyr::left_join(taxa)
 
   # add physcodes
   if (phys) {
@@ -109,7 +109,7 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::left_join(syn_or)
   }
 
-  # add origin
+  # add common name
   if (common) {
     # add collapse names by synonymy ID
     syn_comm <- syn_comm_raw |>

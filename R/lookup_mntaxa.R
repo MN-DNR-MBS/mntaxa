@@ -1,10 +1,37 @@
+#' Title
+#'
+#' @param taxonomy_levels Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.
+#' @param sources Binary option (TRUE, FALSE) to include authorities and publications.
+#' @param phys Binary option (TRUE, FALSE) to include physiognomy.
+#' @param origin Binary option (TRUE, FALSE) to include origin.
+#' @param common Binary option (TRUE, FALSE) to include common names.
+#' @param cvals Binary option (TRUE, FALSE) to include c-values.
+#' @param exclude Binary option (TRUE, FALSE) to include information about excluding taxa from analyses.
+#' @param replace_sub_var Binary option (TRUE, FALSE) to replace subspecies and varieties with their species when the species is present in MNTaxa.
+#' @param replace_family Binary option (TRUE, FALSE) to replace families with species or genus when only one species or genus, respectively, is included in MNtaxa.
+#' @param replace_genus Binary option (TRUE, FALSE) to replace genera with species when only one species is included in MNtaxa.
+#' @param excluded_duplicates Binary option (TRUE, FALSE) to reduce duplicate accepted name assignments by removing those with exclusions documented in MNTaxa.
+#' @param clean_duplicates Binary option (TRUE, FALSE) to remove duplicate accepted name assignments by assigning a taxon to itself when available, assigning a subspecies/variety to the species when available, and assigning the most likely taxon for a handful of hand-curated duplicates.
+#' @param group_accepted Binary option (TRUE, FALSE) to group all potential accepted names.
+#'
+#' @returns Tibble of taxon names paired with accepted names and optional attributes.
+#' @export
+#'
+#' @examples
+#' lookup <- lookup_mntaxa()
 lookup_mntaxa <- function(taxonomy_levels = FALSE,
                             sources = FALSE,
                             phys = FALSE,
                             origin = FALSE,
                             common = FALSE,
                             cvals = FALSE,
-                            exclude = FALSE) {
+                            exclude = FALSE,
+                          replace_sub_var = FALSE,
+                          replace_family = FALSE,
+                          replace_genus = FALSE,
+                          excluded_duplicates = FALSE,
+                          clean_duplicates = FALSE,
+                          group_accepted = FALSE) {
 
   # format taxa names
   taxa <- taxa_mntaxa(
