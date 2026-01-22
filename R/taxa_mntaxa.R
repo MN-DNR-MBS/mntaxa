@@ -38,8 +38,8 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
     dplyr::rename(taxon_id = id) |>
     dplyr::mutate(
       hybrid = dplyr::if_else(stringr::str_detect(taxon, "×") |
-                                is_hybrid == 1, taxon,
-                              NA_character_
+        is_hybrid == 1, taxon,
+      NA_character_
       ) |>
         stringr::str_replace_all("\\ x\\ ", "\\ ×\\ ") |>
         stringr::str_replace_all("\\ x", "\\ ×"),
@@ -54,11 +54,14 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
         taxon |>
           stringr::str_remove("\\\t")
       ),
-      hybrid_parents = stringr::str_replace(hybrid_parents, "\\ X\\ ",
-                                            "\\ x\\ ") |>
+      hybrid_parents = stringr::str_replace(
+        hybrid_parents, "\\ X\\ ",
+        "\\ x\\ "
+      ) |>
         stringr::str_replace("\\ ×\\ ", "\\ x\\ "),
       hybrid_parents = dplyr::if_else(hybrid_parents == "", NA_character_,
-                               hybrid_parents)
+        hybrid_parents
+      )
     )
 
 
@@ -66,18 +69,18 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
   if (taxonomy_levels) {
     taxa <- taxa |>
       dplyr::left_join(rank_raw |>
-                         dplyr::rename(rank_id = id) |>
-                         dplyr::select(rank_id, rank))
+        dplyr::rename(rank_id = id) |>
+        dplyr::select(rank_id, rank))
 
     taxa <- taxa |>
       dplyr::left_join(pars_raw |>
-                         dplyr::distinct(taxon_id, parent_id) |>
-                         dplyr::left_join(taxa |>
-                                            dplyr::transmute(
-                                              parent_id = taxon_id,
-                                              parent_rank = rank,
-                                              parent_taxon = taxon
-                                            )))
+        dplyr::distinct(taxon_id, parent_id) |>
+        dplyr::left_join(taxa |>
+          dplyr::transmute(
+            parent_id = taxon_id,
+            parent_rank = rank,
+            parent_taxon = taxon
+          )))
   }
 
   # add sources if selected
@@ -96,8 +99,10 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
 
   # remove unnecessary ID columns
   taxa <- taxa |>
-    dplyr::select(-c(author_id, rank_id, publication_id, is_hybrid, begin_date,
-                     end_date, created_at, updated_at))
+    dplyr::select(-c(
+      author_id, rank_id, publication_id, is_hybrid, begin_date,
+      end_date, created_at, updated_at
+    ))
 
   # return
   return(taxa |>
