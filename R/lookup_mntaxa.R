@@ -38,6 +38,11 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     sources = sources
   )
 
+  # turn on taxonomy levels if replacements are selected
+  if(any(replace_sub_var, replace_family, replace_genus)){
+    taxonomy_levels <- TRUE
+  }
+
   # format accepted names
   acc <- accepted_mntaxa(
     taxonomy_levels = taxonomy_levels,
@@ -88,7 +93,43 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     dplyr::distinct() |>
     dplyr::rename(synonymy_id = acc_synonymy_id)
 
+
+
+  # replace subspecies/varieties
+  if(replace_sub_var){
+    # isolate subspecies/varieties with species in accepted taxa
+    # repair missing taxon names and IDs
+    # remove subspecies/varities missing species in accepted dataset
+    # add all accepted info consistent with species-level
+    acc_sub_var <- acc_syns2 |>
+      dplyr::filter(acc_rank %in% c("subspecies", "variety")) |>
+      dplyr::mutate(rep_acc_taxon = ifelse(is.na(acc_parent_taxon),
+                                       stringr::word(acc_taxon, 1, 2),
+                                       acc_parent_taxon),
+                    rep_acc_id = acc_parent_id) |>
+      dplyr::select(-c(starts_with("acc_"), synonymy_id)) |>
+      dplyr::left_join(acc |>
+                  dplyr::transmute(rep_acc_taxon = acc_taxon,
+                                   acc_taxon_id)) |>
+      dplyr::mutate(rep_acc_id = ifelse(
+        is.na(rep_acc_id) & !is.na(acc_taxon_id), acc_taxon_id, rep_acc_id)) |>
+      dplyr::select(-acc_taxon_id) |>
+      dplyr::filter(!is.na(rep_acc_id)) |>
+      dplyr::rename(acc_taxon = rep_acc_taxon,
+                    acc_taxon_id = rep_acc_id) |>
+      dplyr::left_join(acc |>
+                         dplyr::select(-synonymy_id) |>
+                         dplyr::rename(synonymy_id = acc_synonymy_id)) |>
+      dplyr::distinct()
+
+    # add replacements to data
+    acc_syns2 <- acc_syns2 |>
+      dplyr::filter(!(taxon_id %in% acc_sub_var$taxon_id)) |>
+      rbind(acc_sub_var)
+
+  }
+
   # return lookup table
   return(acc_syns2 |>
-    tibble::as_tibble())
+           tibble::as_tibble())
 }
