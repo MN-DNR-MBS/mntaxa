@@ -13,3 +13,6 @@ Imports:
     RODBC,
     stringr,
     tibble
+LazyData: true
+Depends: 
+    R (>= 3.5)
