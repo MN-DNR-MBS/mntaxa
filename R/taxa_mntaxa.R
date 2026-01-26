@@ -11,11 +11,11 @@
 taxa_mntaxa <- function(taxonomy_levels = FALSE,
                         sources = FALSE) {
   # check if all taxa table is missing
-  missing_taxa <- !exists("taxa_raw", envir = parent.frame())
+  missing_taxa <- !exists("taxa_raw", envir = .GlobalEnv)
 
   # check each optional set individually
-  missing_taxonomy <- taxonomy_levels && !all(c("pars_raw", "rank_raw") %in% ls(envir = parent.frame()))
-  missing_sources <- sources && !all(c("auth_raw", "pubs_raw") %in% ls(envir = parent.frame()))
+  missing_taxonomy <- taxonomy_levels && !all(c("pars_raw", "rank_raw") %in% ls(envir = .GlobalEnv))
+  missing_sources <- sources && !all(c("auth_raw", "pubs_raw") %in% ls(envir = .GlobalEnv))
 
   # load only if something is missing
   if (missing_taxa || missing_taxonomy || missing_sources) {

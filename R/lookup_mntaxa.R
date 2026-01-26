@@ -60,13 +60,13 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
   syns <- syns_raw |>
     dplyr::left_join(taxa)
 
-  # synonyms of d-list
+  # synonyms of accepted names
   acc_syns <- acc |>
     dplyr::left_join(syns |>
       dplyr::select(synonymy_id, colnames(taxa)))
 
-  # add new acc_id to the retired d-list taxon's synonymy group
-  # some retired synonymies do not have current d-list matches
+  # add new acc_id to the retired accepted names's synonymy group
+  # some retired synonymies do not have current accepted matches
   acc_rep <- syns |>
     dplyr::filter(!is.na(d_list_beg_date) & !is.na(d_list_end_date) &
       !(synonymy_id %in% acc_syns$synonymy_id)) |>
@@ -93,41 +93,39 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     dplyr::distinct() |>
     dplyr::rename(synonymy_id = acc_synonymy_id)
 
-
-
   # replace subspecies/varieties
   if(replace_sub_var){
-    # isolate subspecies/varieties with species in accepted taxa
-    # repair missing taxon names and IDs
-    # remove subspecies/varities missing species in accepted dataset
-    # add all accepted info consistent with species-level
-    acc_sub_var <- acc_syns2 |>
-      dplyr::filter(acc_rank %in% c("subspecies", "variety")) |>
-      dplyr::mutate(rep_acc_taxon = ifelse(is.na(acc_parent_taxon),
-                                       stringr::word(acc_taxon, 1, 2),
-                                       acc_parent_taxon),
-                    rep_acc_id = acc_parent_id) |>
-      dplyr::select(-c(starts_with("acc_"), synonymy_id)) |>
-      dplyr::left_join(acc |>
-                  dplyr::transmute(rep_acc_taxon = acc_taxon,
-                                   acc_taxon_id)) |>
-      dplyr::mutate(rep_acc_id = ifelse(
-        is.na(rep_acc_id) & !is.na(acc_taxon_id), acc_taxon_id, rep_acc_id)) |>
-      dplyr::select(-acc_taxon_id) |>
-      dplyr::filter(!is.na(rep_acc_id)) |>
-      dplyr::rename(acc_taxon = rep_acc_taxon,
-                    acc_taxon_id = rep_acc_id) |>
-      dplyr::left_join(acc |>
-                         dplyr::select(-synonymy_id) |>
-                         dplyr::rename(synonymy_id = acc_synonymy_id)) |>
-      dplyr::distinct()
+    # get species as replacement for subspecies/varieties
+    # remove subspecies/varieties missing species in accepted dataset
+    acc_sub_var <- higher_mntaxa(species_only = TRUE) |>
+      dplyr::filter(acc_taxon_id_rep %in% acc$acc_taxon_id)
 
     # add replacements to data
+    # remove duplicates (some already matched with species-level)
     acc_syns2 <- acc_syns2 |>
-      dplyr::filter(!(taxon_id %in% acc_sub_var$taxon_id)) |>
-      rbind(acc_sub_var)
+      dplyr::left_join(acc_sub_var, by = "acc_taxon_id") |>
+      dplyr::mutate(
+        dplyr::across(
+          .cols = dplyr::everything(),
+          .fns = ~ {
+            rep_col <- paste0(dplyr::cur_column(), "_rep")
+            if (rep_col %in% names(dplyr::cur_data())) {
+              dplyr::if_else(!is.na(dplyr::cur_data()[[rep_col]]),
+                             dplyr::cur_data()[[rep_col]],
+                             .x)
+            } else {
+              .x
+            }
+          }
+        )
+      ) |>
+      dplyr::select(-dplyr::ends_with("_rep")) |>
+      dplyr::distinct()
 
   }
+
+
+
 
   # return lookup table
   return(acc_syns2 |>

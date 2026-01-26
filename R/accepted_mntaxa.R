@@ -21,17 +21,17 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
                             cvals = FALSE,
                             exclude = FALSE) {
   # check if accepted and all taxa tables are missing
-  missing_synonymies <- !exists("syns_raw", envir = parent.frame())
-  missing_taxa <- !exists("taxa_raw", envir = parent.frame())
+  missing_synonymies <- !exists("syns_raw", envir = .GlobalEnv)
+  missing_taxa <- !exists("taxa_raw", envir = .GlobalEnv)
 
   # check each optional set individually
-  missing_taxonomy <- taxonomy_levels && !all(c("pars_raw", "rank_raw") %in% ls(envir = parent.frame()))
-  missing_sources <- sources && !all(c("auth_raw", "pubs_raw") %in% ls(envir = parent.frame()))
-  missing_phys <- phys && !all(c("phys_codes_raw", "syn_phys_raw") %in% ls(envir = parent.frame()))
-  missing_origin <- origin && !all(c("origin_codes_raw", "syn_or_raw") %in% ls(envir = parent.frame()))
-  missing_common <- common && !exists("syn_comm_raw", envir = parent.frame())
-  missing_cvals <- cvals && !exists("syn_cvals_raw", envir = parent.frame())
-  missing_exclude <- exclude && !all(c("syn_exclude_raw", "exclude_codes_raw") %in% ls(envir = parent.frame()))
+  missing_taxonomy <- taxonomy_levels && !all(c("pars_raw", "rank_raw") %in% ls(envir = .GlobalEnv))
+  missing_sources <- sources && !all(c("auth_raw", "pubs_raw") %in% ls(envir = .GlobalEnv))
+  missing_phys <- phys && !all(c("phys_codes_raw", "syn_phys_raw") %in% ls(envir = .GlobalEnv))
+  missing_origin <- origin && !all(c("origin_codes_raw", "syn_or_raw") %in% ls(envir = .GlobalEnv))
+  missing_common <- common && !exists("syn_comm_raw", envir = .GlobalEnv)
+  missing_cvals <- cvals && !exists("syn_cvals_raw", envir = .GlobalEnv)
+  missing_exclude <- exclude && !all(c("syn_exclude_raw", "exclude_codes_raw") %in% ls(envir = .GlobalEnv))
 
   # load only if something is missing
   if (missing_synonymies || missing_taxa || missing_taxonomy || missing_sources || missing_phys || missing_origin || missing_common || missing_cvals || missing_exclude) {

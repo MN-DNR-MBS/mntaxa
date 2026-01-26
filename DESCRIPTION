@@ -10,9 +10,12 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
     dplyr,
+    janitor,
     RODBC,
     stringr,
-    tibble
+    taxizedb,
+    tibble,
+    tidyr
 LazyData: true
 Depends: 
     R (>= 3.5)
