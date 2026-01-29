@@ -3,4 +3,5 @@
 export(accepted_mntaxa)
 export(load_mntaxa)
 export(lookup_mntaxa)
+export(subvar_mntaxa)
 export(taxa_mntaxa)

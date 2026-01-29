@@ -2,7 +2,7 @@
 % Please edit documentation in R/lookup_mntaxa.R
 \name{lookup_mntaxa}
 \alias{lookup_mntaxa}
-\title{Title}
+\title{Create MNTaxa lookup table}
 \usage{
 lookup_mntaxa(
   taxonomy_levels = FALSE,
@@ -51,7 +51,7 @@ lookup_mntaxa(
 Tibble of taxon names paired with accepted names and optional attributes.
 }
 \description{
-Title
+Create MNTaxa lookup table
 }
 \examples{
 lookup <- lookup_mntaxa()
