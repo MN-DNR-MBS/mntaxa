@@ -567,8 +567,11 @@ acc_pars3 %>%
   distinct(phylum, kingdom) %>%
   get_dupes(phylum)
 
+# update hybrid genus
 # select and order columns
 acc_pars4 <- acc_pars3 %>%
+  mutate(genus = if_else(word(acc_taxon, 1, 2) == "x Elyhordeum",
+                         "x Elyhordeum", genus)) %>%
   select(acc_taxon_id, acc_taxon, acc_ss_sl, acc_hybrid, acc_rank, species,
          genus, family, order, class, phylum, kingdom, taxonomy_source) %>%
   rename_with(.cols = -starts_with("acc"),

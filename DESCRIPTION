@@ -13,9 +13,7 @@ Imports:
     janitor,
     RODBC,
     stringr,
-    taxizedb,
-    tibble,
-    tidyr
+    tibble
 LazyData: true
 Depends: 
     R (>= 3.5)
