@@ -1,4 +1,4 @@
-#' Title
+#' Create MNTaxa lookup table
 #'
 #' @param taxonomy_levels Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.
 #' @param sources Binary option (TRUE, FALSE) to include authorities and publications.
@@ -97,7 +97,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
   if(replace_sub_var){
     # get species as replacement for subspecies/varieties
     # remove subspecies/varieties missing species in accepted dataset
-    acc_sub_var <- higher_mntaxa(species_only = TRUE) |>
+    acc_sub_var <- subvar_mntaxa() |>
       dplyr::filter(acc_taxon_id_rep %in% acc$acc_taxon_id)
 
     # add replacements to data
