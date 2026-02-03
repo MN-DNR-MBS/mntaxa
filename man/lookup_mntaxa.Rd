@@ -2,7 +2,7 @@
 % Please edit documentation in R/lookup_mntaxa.R
 \name{lookup_mntaxa}
 \alias{lookup_mntaxa}
-\title{Create MNTaxa lookup table}
+\title{Create MNTaxa look-up table}
 \usage{
 lookup_mntaxa(
   taxonomy_levels = FALSE,
@@ -15,6 +15,9 @@ lookup_mntaxa(
   replace_sub_var = FALSE,
   replace_family = FALSE,
   replace_genus = FALSE,
+  drop_higher = FALSE,
+  higher_include = c("Belonia", "Chara", "Lychnothamnus", "Nitella", "Nitellopsis",
+    "Spirogyra", "Tolypella"),
   excluded_duplicates = FALSE,
   clean_duplicates = FALSE,
   group_accepted = FALSE
@@ -41,17 +44,21 @@ lookup_mntaxa(
 
 \item{replace_genus}{Binary option (TRUE, FALSE) to replace genera with species when only one species is included in MNtaxa.}
 
+\item{drop_higher}{Binary option (TRUE, FALSE) to drop taxonomic levels above species from the accepted taxa list. Implemented after \code{replace_family} and \code{replace_genus}. See \code{higher_include} for exceptions.}
+
+\item{higher_include}{Vector of accepted genera or family names to be include in look-up table. The default are included because they don't have lower taxa in the accepted species list (Belonia, Chara, Lychnothamnus, Nitella, Nitellopsis, Spirogyra, Tolypella). Only implemented if \code{drop_higher} = TRUE..}
+
 \item{excluded_duplicates}{Binary option (TRUE, FALSE) to reduce duplicate accepted name assignments by removing those with exclusions documented in MNTaxa.}
 
-\item{clean_duplicates}{Binary option (TRUE, FALSE) to remove duplicate accepted name assignments by assigning a taxon to itself when available, assigning a subspecies/variety to the species when available, and assigning the most likely taxon for a handful of hand-curated duplicates.}
+\item{clean_duplicates}{Binary option (TRUE, FALSE) to remove duplicate accepted name assignments by assigning a taxon to itself when available and assigning the most likely taxon for a handful of hand-curated duplicates. Recommended for one-to-one taxon-to-accepted look-up table.}
 
-\item{group_accepted}{Binary option (TRUE, FALSE) to group all potential accepted names.}
+\item{group_accepted}{Binary option (TRUE, FALSE) to group all potential accepted names. Recommended for one-to-one taxon id-to-analysis group look-up table.}
 }
 \value{
-Tibble of taxon names paired with accepted names and optional attributes.
+Tibble of taxon names paired with accepted names and optional attributes. If both \code{clean_duplicates} and \code{group_accepted} are selected, \code{group_accepted} will be used.
 }
 \description{
-Create MNTaxa lookup table
+Create MNTaxa look-up table
 }
 \examples{
 lookup <- lookup_mntaxa()

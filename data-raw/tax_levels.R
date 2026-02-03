@@ -545,6 +545,9 @@ acc_pars3 %>%
            is.na(phylum) | is.na(kingdom))
 # none
 
+acc_pars3 %>%
+  filter(acc_rank != "family" & is.na(genus))
+
 # check that all have same upstream
 acc_pars3 %>%
   filter(!is.na(genus)) %>%
@@ -567,11 +570,14 @@ acc_pars3 %>%
   distinct(phylum, kingdom) %>%
   get_dupes(phylum)
 
+# taxa that should have hybrid genus
+xely <- filter(acc, word(acc_taxon, 1, 2) == "x Elyhordeum") %>%
+  distinct(acc_taxon_id)
+
 # update hybrid genus
 # select and order columns
 acc_pars4 <- acc_pars3 %>%
-  mutate(genus = if_else(word(acc_taxon, 1, 2) == "x Elyhordeum",
-                         "x Elyhordeum", genus)) %>%
+  mutate(genus = if_else(acc_taxon_id %in% xely, "x Elyhordeum", genus)) %>%
   select(acc_taxon_id, acc_taxon, acc_ss_sl, acc_hybrid, acc_rank, species,
          genus, family, order, class, phylum, kingdom, taxonomy_source) %>%
   rename_with(.cols = -starts_with("acc"),

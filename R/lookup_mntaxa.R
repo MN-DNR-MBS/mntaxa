@@ -1,4 +1,4 @@
-#' Create MNTaxa lookup table
+#' Create MNTaxa look-up table
 #'
 #' @param taxonomy_levels Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.
 #' @param sources Binary option (TRUE, FALSE) to include authorities and publications.
@@ -13,11 +13,11 @@
 #' @param drop_higher Binary option (TRUE, FALSE) to drop taxonomic levels above species from the accepted taxa list. Implemented after `replace_family` and `replace_genus`. See `higher_include` for exceptions.
 #' @param higher_include Vector of accepted genera or family names to be include in look-up table. The default are included because they don't have lower taxa in the accepted species list (Belonia, Chara, Lychnothamnus, Nitella, Nitellopsis, Spirogyra, Tolypella). Only implemented if `drop_higher` = TRUE..
 #' @param excluded_duplicates Binary option (TRUE, FALSE) to reduce duplicate accepted name assignments by removing those with exclusions documented in MNTaxa.
-#' @param clean_duplicates Binary option (TRUE, FALSE) to remove duplicate accepted name assignments by assigning a taxon to itself when available and assigning the most likely taxon for a handful of hand-curated duplicates.
-#' @param group_accepted Binary option (TRUE, FALSE) to group all potential accepted names.
+#' @param clean_duplicates Binary option (TRUE, FALSE) to remove duplicate accepted name assignments by assigning a taxon to itself when available and assigning the most likely taxon for a handful of hand-curated duplicates. Recommended for one-to-one taxon-to-accepted look-up table.
+#' @param group_accepted Binary option (TRUE, FALSE) to group all potential accepted names. Recommended for one-to-one taxon id-to-analysis group look-up table.
 
 #'
-#' @returns Tibble of taxon names paired with accepted names and optional attributes.
+#' @returns Tibble of taxon names paired with accepted names and optional attributes. If both `clean_duplicates` and `group_accepted` are selected, `group_accepted` will be used.
 #' @export
 #'
 #' @examples
@@ -49,6 +49,11 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     taxonomy_levels <- TRUE
   }
 
+  # turn on excluded table if needed
+  if(excluded_duplicates){
+    exclude <- TRUE
+  }
+
   # format taxa names
   taxa <- taxa_mntaxa(
     taxonomy_levels = taxonomy_levels,
@@ -70,12 +75,13 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
 
   # synonymy table
   syns <- syns_raw |>
-    dplyr::left_join(taxa)
+    dplyr::left_join(taxa, by = "taxon_id")
 
   # synonyms of accepted names
   acc_syns <- acc |>
     dplyr::left_join(syns |>
-      dplyr::select(synonymy_id, colnames(taxa)))
+      dplyr::select(synonymy_id, colnames(taxa)),
+      by = "synonymy_id")
 
   # add new acc_id to the retired accepted names's synonymy group
   # some retired synonymies do not have current accepted matches
@@ -87,6 +93,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       acc_syns |>
         dplyr::select(taxon_id, starts_with("acc")) |>
         dplyr::distinct(),
+      by = "taxon_id",
       relationship = "many-to-many"
     ) |>
     dplyr::select(colnames(acc)) |>
@@ -94,11 +101,12 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
 
   # update synonyms of acc
   # remove duplication from multiple synonymies
-  acc_syns2 <- syns |>
+  acc_lookup <- syns |>
     dplyr::select(taxon_id, synonymy_id, colnames(taxa)) |>
     dplyr::right_join(
       acc |>
         rbind(acc_rep),
+      by = "synonymy_id",
       relationship = "many-to-many"
     ) |>
     dplyr::select(-synonymy_id) |>
@@ -114,17 +122,17 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
 
     # add replacements to data
     # remove duplicates (some already matched with species-level)
-    #### final change: acc_syns3 > acc_syns2 ####
-    acc_syns3 <- acc_syns2 |>
+    acc_lookup <- acc_lookup |>
       dplyr::left_join(acc_sub_var, by = "acc_taxon_id") |>
       dplyr::mutate(
+        has_replacement = !is.na(acc_taxon_id_rep),
         dplyr::across(
           .cols = dplyr::everything(),
           .fns = ~ {
             rep_col <- paste0(dplyr::cur_column(), "_rep")
             data <- dplyr::pick(dplyr::everything())
             if (rep_col %in% names(data)) {
-              dplyr::if_else(!is.na(data[[rep_col]]),
+              dplyr::if_else(data[["has_replacement"]],
                              data[[rep_col]],
                              .x)
             } else {
@@ -133,7 +141,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
           }
         )
       ) |>
-      dplyr::select(-dplyr::ends_with("_rep")) |>
+      dplyr::select(-dplyr::ends_with("_rep"), -has_replacement) |>
       dplyr::distinct()
 
   }
@@ -141,7 +149,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
   if(replace_family){
 
     # add taxonomy levels to lookup
-    acc_syns_levels <- acc_syns3 |>
+    acc_syns_levels <- acc_lookup |>
       dplyr::left_join(tax_levels |>
                          dplyr::select(acc_taxon_id, acc_species, acc_genus,
                                        acc_family),
@@ -155,7 +163,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     }
 
     # single species per family in MNTaxa
-    # add dlist info from species
+    # add acc info from species
     # rename columns
     acc_single_fam <- acc_syns_levels |>
       dplyr::filter(acc_rank %in% c("subspecies", "variety", "species",
@@ -176,10 +184,10 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
                        by = "acc_taxon_rep")
 
 # family in that have multiple families as acc matches
-family_split <- acc_syns3 |>
+family_split <- acc_lookup |>
   dplyr::filter(rank == "family") |>
   dplyr::distinct(taxon) |>
-  dplyr::inner_join(acc_syns3 |>
+  dplyr::inner_join(acc_lookup |>
                       dplyr::filter(acc_rank == "family")) |>
   dplyr::group_by(taxon) |>
   dplyr::mutate(n_acc = dplyr::n_distinct(acc_taxon)) |>
@@ -187,7 +195,7 @@ family_split <- acc_syns3 |>
   dplyr::filter(n_acc > 1)
 
 # family names that have switched with accepted species using old name
-family_switch <- acc_syns3 |>
+family_switch <- acc_lookup |>
   dplyr::filter(rank == "family" & acc_rank == "family" & taxon != acc_taxon &
                   acc_taxon %in% acc_single_fam$acc_taxon) |>
   dplyr::distinct(taxon, acc_taxon) |>
@@ -198,20 +206,20 @@ family_switch <- acc_syns3 |>
                     by = "acc_family",
                     relationship = "many-to-many")
 
-
 # replace the family as the acc assignment
-acc_syns4 <- acc_syns3 |>
+acc_lookup <- acc_lookup |>
   dplyr::left_join(acc_single_fam |>
                      dplyr::filter(!(acc_taxon %in% c(family_split$acc_taxon, family_switch$new_family))),
                    by = "acc_taxon") |>
   dplyr::mutate(
+    has_replacement = !is.na(acc_taxon_id_rep) & !(taxon %in% family_split$taxon),
     dplyr::across(
       .cols = dplyr::everything(),
       .fns = ~ {
         rep_col <- paste0(dplyr::cur_column(), "_rep")
         data <- dplyr::pick(dplyr::everything())
         if (rep_col %in% names(data)) {
-          dplyr::if_else(!is.na(data[[rep_col]]),
+          dplyr::if_else(data[["has_replacement"]],
                          data[[rep_col]],
                          .x)
         } else {
@@ -220,7 +228,7 @@ acc_syns4 <- acc_syns3 |>
       }
     )
   ) |>
-  dplyr::select(-dplyr::ends_with("_rep")) |>
+  dplyr::select(-dplyr::ends_with("_rep"), -has_replacement) |>
   dplyr::distinct()
 
   }
@@ -228,11 +236,19 @@ acc_syns4 <- acc_syns3 |>
   if(replace_genus){
 
     # add taxonomy levels to lookup
-    acc_syns_levels <- acc_syns4 |>
+    acc_syns_levels <- acc_lookup |>
       dplyr::left_join(tax_levels |>
                          dplyr::select(acc_taxon_id, acc_species, acc_genus,
                                        acc_family),
                        by = "acc_taxon_id")
+
+    # stop if genus is missing
+    if(sum(is.na(acc_syns_levels$acc_genus) &
+           acc_syns_levels$rank != "family") > 0){
+
+      stop("Accepted taxa are missing genera. Cannot replace  genera with species.")
+
+    }
 
     # single species per genus in MNTaxa
     # add acc info from species
@@ -252,10 +268,10 @@ acc_syns4 <- acc_syns3 |>
                        by = "acc_taxon_rep")
 
     # genera that have multiple genera as acc matches
-    genus_split <- acc_syns4 |>
+    genus_split <- acc_lookup |>
       dplyr::filter(rank == "genus") |>
       dplyr::distinct(taxon) |>
-      dplyr::inner_join(acc_syns4 |>
+      dplyr::inner_join(acc_lookup |>
                           dplyr::filter(acc_rank == "genus")) |>
       dplyr::group_by(taxon) |>
       dplyr::mutate(n_acc = dplyr::n_distinct(acc_taxon)) |>
@@ -263,7 +279,7 @@ acc_syns4 <- acc_syns3 |>
       dplyr::filter(n_acc > 1)
 
     # genus-level taxon with accepted species using old name
-    genus_switch <- acc_syns4 |>
+    genus_switch <- acc_lookup |>
       dplyr::filter(rank == "genus" & acc_rank == "genus" & taxon != acc_taxon &
                  acc_taxon %in% acc_single_gen$acc_taxon) |>
       dplyr::distinct(taxon, acc_taxon) |>
@@ -275,19 +291,21 @@ acc_syns4 <- acc_syns3 |>
                    relationship = "many-to-many")
 
     # replace the genus as the acc assignment
-    acc_syns5 <- acc_syns4 |>
+    acc_lookup <- acc_lookup |>
       dplyr::left_join(acc_single_gen |>
-                         dplyr::filter(!(acc_taxon %in% c(genus_switch$new_genus,
+                         dplyr::filter(!(acc_taxon %in%
+                                           c(genus_switch$new_genus,
                                             genus_split$taxon))),
                        by = "acc_taxon") |>
       dplyr::mutate(
+        has_replacement = !is.na(acc_taxon_id_rep) & !(taxon %in% genus_split$taxon),
         dplyr::across(
           .cols = dplyr::everything(),
           .fns = ~ {
             rep_col <- paste0(dplyr::cur_column(), "_rep")
             data <- dplyr::pick(dplyr::everything())
             if (rep_col %in% names(data)) {
-              dplyr::if_else(!is.na(data[[rep_col]]),
+              dplyr::if_else(data[["has_replacement"]],
                              data[[rep_col]],
                              .x)
             } else {
@@ -296,7 +314,7 @@ acc_syns4 <- acc_syns3 |>
           }
         )
       ) |>
-      dplyr::select(-dplyr::ends_with("_rep")) |>
+      dplyr::select(-dplyr::ends_with("_rep"), -has_replacement) |>
       dplyr::distinct()
 
   }
@@ -307,7 +325,7 @@ acc_syns4 <- acc_syns3 |>
     # add parent
     # drop offspring if their parent species is an assignment and matches rank
     # of taxon
-    acc_syns6 <- acc_syns5 |>
+    acc_lookup <- acc_lookup |>
       dplyr::filter(acc_rank %in% c("species", "subspecies", "variety",
                                "subspecies variety")|
                acc_taxon %in% higher_include)
@@ -315,68 +333,105 @@ acc_syns4 <- acc_syns3 |>
 
   }
 
-  #### start here ####
-  # add dplyr:: etc. where needed
-
   if(excluded_duplicates){
 
     # number of accepted matches per taxon
-    acc_matches <- acc_syns6 |>
-      group_by(taxon) |>
-      mutate(n_acc = n_distinct(acc_taxon)) |>
-      ungroup()
+    acc_matches <- acc_lookup |>
+      dplyr::group_by(taxon) |>
+      dplyr::mutate(n_acc = dplyr::n_distinct(acc_taxon)) |>
+      dplyr::ungroup()
 
     # taxon assignments with multiple acc
     # acc assignments that are excluded
     # remove acc assignments that are the only option for a taxon
     acc_dups_exclude <- acc_matches |>
-      filter(n_acc > 1) |>
-      left_join(exclude2 |>
-                  distinct(synonymy_id, excluded_description)) |>
-      filter(!is.na(excluded_description)) |>
-      select(starts_with("acc"), synonymy_id, excluded_description) |>
-      distinct() |>
-      anti_join(acc_matches |>
-                  filter(n_acc == 1))
+      dplyr::filter(n_acc > 1) |>
+      dplyr::filter(!is.na(acc_excluded_code)) |>
+      dplyr::select(starts_with("acc"), synonymy_id) |>
+      dplyr::distinct() |>
+      dplyr::anti_join(acc_matches |>
+                         dplyr::filter(n_acc == 1))
 
     # remove these excluded duplicates
-    acc_syns7 <- acc_syns6 |>
-      anti_join(acc_dups_exclude)
+    acc_lookup <- acc_lookup |>
+      dplyr::anti_join(acc_dups_exclude)
 
 
   }
 
-  if(clean_duplicates){
-
-    # there's a rule about sub > species, but I think it's redundant
+  if(clean_duplicates & !group_accepted){
 
     # if a taxon is accepted, make it's only accepted taxon itself
-    # manual corrections that were developed within based on the most
-    # likely taxon someone would be recording
-    dlist_lookup <- dlist_syns7 %>%
-      group_by(taxon) %>%
-      mutate(in_dlist = if_else(taxon %in% dlist_taxon, 1, 0),
-             species_in_dlist = if_else(rank %in% c("variety", "subspecies",
+    # if its parent is accepted and a match, use parent
+    # manual corrections for the most likely taxon someone would be recording
+    # for taxa with multiple matches, summarize those
+    acc_lookup <- acc_lookup |>
+      dplyr::group_by(taxon) |>
+      dplyr::mutate(in_acc = dplyr::if_else(taxon %in% acc_taxon, 1, 0),
+             species_in_acc = dplyr::if_else(rank %in% c("variety", "subspecies",
                                                     "subspecies variety") &
-                                          word(taxon, 1, 2) %in%
-                                          dlist_taxon, 1, 0)) %>%
-      ungroup() %>%
-      filter((in_dlist == 0 & species_in_dlist == 0) |
-               (in_dlist == 1 & taxon == dlist_taxon) |
-               (species_in_dlist == 1 & word(taxon, 1, 2) == dlist_taxon)) %>%
-      select(-ends_with("in_dlist")) %>%
-      filter(!(taxon == "Arabis holboellii" &
-                 dlist_taxon == "Boechera retrofracta") &
+                                          stringr::word(taxon, 1, 2) %in%
+                                          acc_taxon, 1, 0)) |>
+      dplyr::ungroup() |>
+      dplyr::filter((in_acc == 0 & species_in_acc == 0) |
+               (in_acc == 1 & taxon == acc_taxon) |
+               (species_in_acc == 1 & stringr::word(taxon, 1, 2) == acc_taxon) &
+                 !(taxon == "Arabis holboellii" &
+                 acc_taxon == "Boechera retrofracta") &
                !(taxon == "Botrychium lunaria" &
-                   dlist_taxon == "Botrychium crenulatum") &
+                   acc_taxon == "Botrychium crenulatum") &
                !(taxon == "Chamerion angustifolium subsp. angustifolium" &
-                   dlist_taxon == "Eriophorum angustifolium") &
+                   acc_taxon == "Eriophorum angustifolium") &
                !(taxon == "Quercus x schuettei" &
-                   dlist_taxon == "Quercus x hillii"))
+                   acc_taxon == "Quercus x hillii")) |>
+      dplyr::group_by(taxon, hybrid, rank) |>
+      dplyr::summarize(dplyr::across(c(starts_with("acc_"), synonymy_id),
+                       ~paste(sort(unique(.x)), collapse = "/")),
+                .groups = "drop") |>
+      dplyr::mutate(acc_assignment = dplyr::if_else(
+        stringr::str_detect(acc_taxon, "/"),
+        purrr::map_chr(stringr::str_split(acc_taxon, "/"), combine_names),
+        acc_taxon)) |>
+      dplyr::select(-acc_taxon)
+
+  }
+
+  if(group_accepted){
+
+    # groups propagate through all assignments, such that assigned taxa in the
+    # group are put in the group, even if they are only assigned to themselves
+
+    # unique combos of taxon and acc IDs (graph edges)
+    acc_edges <- acc_lookup |>
+      dplyr::distinct(taxon_id, acc_taxon_id)
+
+    # build a graph of all taxon_id ↔ acc_id relationships
+    acc_graph <- igraph::graph_from_data_frame(acc_edges, directed = FALSE)
+
+    # create groups using all IDs
+    acc_comps <- igraph::components(acc_graph)
+
+    # add groups from components to synonymy
+    # summarize by acc_group
+    # name by concatenating names
+    acc_lookup <- data.frame(taxon_id = names(acc_comps$membership) |>
+                            as.numeric(),
+                          acc_group = acc_comps$membership) |>
+      dplyr::left_join(acc_lookup, by = "taxon_id") |>
+      dplyr::group_by(acc_group) |>
+      dplyr::mutate(dplyr::across(c(starts_with("acc_"), synonymy_id),
+                                     ~paste(sort(unique(.x)), collapse = "/"))) |>
+    dplyr::ungroup() |>
+        dplyr::mutate(acc_assignment = dplyr::if_else(
+          stringr::str_detect(acc_taxon, "/"),
+          purrr::map_chr(stringr::str_split(acc_taxon, "/"), combine_names),
+          acc_taxon)) |>
+        dplyr::select(-c(acc_taxon, acc_group)) |>
+      dplyr::distinct()
 
   }
 
   # return lookup table
-  return(acc_syns2 |>
+  return(acc_lookup |>
            tibble::as_tibble())
 }

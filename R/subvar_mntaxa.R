@@ -7,12 +7,23 @@
 #' acc_sub_var <- subvar_mntaxa()
 subvar_mntaxa <- function(){
 
-  # format accepted names
-  acc <- accepted_mntaxa(
-    taxonomy_levels = TRUE
-  ) |>
-    dplyr::rename_with(.fn = ~ paste("acc", .x, sep = "_")) |>
-    dplyr::mutate(synonymy_id = acc_synonymy_id)
+  # accepted data with taxonomy levels needed?
+  if(!exists("acc", envir = .GlobalEnv)){
+    missing_acc <- TRUE
+  } else if(!("acc_rank" %in% names(acc))){
+    missing_acc <- TRUE
+  } else {
+    missing_acc <- FALSE
+  }
+
+  # load and format accepted names if not in environment
+  if(missing_acc){
+    acc <- accepted_mntaxa(
+      taxonomy_levels = TRUE
+    ) |>
+      dplyr::rename_with(.fn = ~ paste("acc", .x, sep = "_")) |>
+      dplyr::mutate(synonymy_id = acc_synonymy_id)
+  }
 
   # get species-level for sub-species and varieties
   # isolate subspecies/varieties with species in accepted taxa
