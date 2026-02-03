@@ -37,11 +37,14 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
   taxa <- taxa_raw |>
     dplyr::rename(taxon_id = id) |>
     dplyr::mutate(
-      hybrid = dplyr::case_when(stringr::str_detect(taxon, "×") ~ taxon,
-                                taxon %in% c("Potentilla hippiana",
-                                             "Staphylea trifolia") ~ NA_character_,
-                                is_hybrid == 1 ~ taxon,
-      TRUE ~ NA_character_
+      hybrid = dplyr::case_when(
+        stringr::str_detect(taxon, "×") ~ taxon,
+        taxon %in% c(
+          "Potentilla hippiana",
+          "Staphylea trifolia"
+        ) ~ NA_character_,
+        is_hybrid == 1 ~ taxon,
+        TRUE ~ NA_character_
       ) |>
         stringr::str_replace_all("\\ x\\ ", "\\ ×\\ ") |>
         stringr::str_replace_all("\\ x", "\\ ×"),

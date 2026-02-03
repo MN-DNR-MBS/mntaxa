@@ -5,19 +5,18 @@
 #'
 #' @examples
 #' acc_sub_var <- subvar_mntaxa()
-subvar_mntaxa <- function(){
-
+subvar_mntaxa <- function() {
   # accepted data with taxonomy levels needed?
-  if(!exists("acc", envir = .GlobalEnv)){
+  if (!exists("acc", envir = .GlobalEnv)) {
     missing_acc <- TRUE
-  } else if(!("acc_rank" %in% names(acc))){
+  } else if (!("acc_rank" %in% names(acc))) {
     missing_acc <- TRUE
   } else {
     missing_acc <- FALSE
   }
 
   # load and format accepted names if not in environment
-  if(missing_acc){
+  if (missing_acc) {
     acc <- accepted_mntaxa(
       taxonomy_levels = TRUE
     ) |>
@@ -34,28 +33,38 @@ subvar_mntaxa <- function(){
     dplyr::filter(acc_rank %in% c("subspecies", "variety")) |>
     dplyr::transmute(
       acc_taxon_id,
-      acc_taxon = dplyr::coalesce(acc_parent_taxon,
-                                  stringr::word(acc_taxon, 1, 2)),
+      acc_taxon = dplyr::coalesce(
+        acc_parent_taxon,
+        stringr::word(acc_taxon, 1, 2)
+      ),
       acc_taxon_id_rep = dplyr::if_else(
         acc_parent_id %in% acc$acc_taxon_id,
         acc_parent_id,
-        NA_real_)) |>
-    dplyr::left_join(acc |>
-                       dplyr::select(acc_taxon,
-                                     temp_taxon_id = acc_taxon_id),
-                     by = "acc_taxon") |>
-    dplyr::mutate(acc_taxon_id_rep = dplyr::coalesce(
-      acc_taxon_id_rep, temp_taxon_id)) |>
-    dplyr::select(-temp_taxon_id) |>
-    dplyr::left_join(acc |>
-                       dplyr::select(-synonymy_id) |>
-                       dplyr::rename(synonymy_id = acc_synonymy_id),
-                     by = c("acc_taxon", "acc_taxon_id_rep" = "acc_taxon_id")
+        NA_real_
+      )
     ) |>
-    dplyr::rename_with(~paste0(.x, "_rep"),
-                       -starts_with("acc_taxon_id"))
+    dplyr::left_join(
+      acc |>
+        dplyr::select(acc_taxon,
+          temp_taxon_id = acc_taxon_id
+        ),
+      by = "acc_taxon"
+    ) |>
+    dplyr::mutate(acc_taxon_id_rep = dplyr::coalesce(
+      acc_taxon_id_rep, temp_taxon_id
+    )) |>
+    dplyr::select(-temp_taxon_id) |>
+    dplyr::left_join(
+      acc |>
+        dplyr::select(-synonymy_id) |>
+        dplyr::rename(synonymy_id = acc_synonymy_id),
+      by = c("acc_taxon", "acc_taxon_id_rep" = "acc_taxon_id")
+    ) |>
+    dplyr::rename_with(
+      ~ paste0(.x, "_rep"),
+      -starts_with("acc_taxon_id")
+    )
 
   # return
   return(acc_sub_var)
-
 }
