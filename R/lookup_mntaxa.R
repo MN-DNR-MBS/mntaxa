@@ -194,12 +194,11 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         by = "acc_taxon_rep"
       )
 
-    # family in that have multiple families as acc matches
+    # family that have multiple accepted families
+    # can't explore taxa below family that map to other families because
+    # only accepted taxa have explicit family assignments
     family_split <- acc_lookup |>
-      dplyr::filter(rank == "family") |>
-      dplyr::distinct(taxon) |>
-      dplyr::inner_join(acc_lookup |>
-        dplyr::filter(acc_rank == "family")) |>
+      dplyr::filter(rank == "family" & acc_rank == "family") |>
       dplyr::group_by(taxon) |>
       dplyr::mutate(n_acc = dplyr::n_distinct(acc_taxon)) |>
       dplyr::ungroup() |>
@@ -287,14 +286,19 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         by = "acc_taxon_rep"
       )
 
-    # genera that have multiple genera as acc matches
+    # genera that have multiple accepted genera
     genus_split <- acc_lookup |>
-      dplyr::filter(rank == "genus") |>
-      dplyr::distinct(taxon) |>
-      dplyr::inner_join(acc_lookup |>
-        dplyr::filter(acc_rank == "genus")) |>
-      dplyr::group_by(taxon) |>
-      dplyr::mutate(n_acc = dplyr::n_distinct(acc_taxon)) |>
+      dplyr::filter(rank %in% c("genus", "species", "subspecies", "variety",
+                                "subspecies variety")) |>
+      dplyr::left_join(tax_levels |>
+                         dplyr::select(acc_taxon_id, acc_genus),
+                       by = "acc_taxon_id") |>
+      dplyr::mutate(genus = dplyr::case_when(
+        rank == "genus" ~ taxon,
+        rank == "species" & !is.na(parent_taxon) ~ parent_taxon,
+        TRUE ~ stringr::word(taxon, 1))) |>
+      dplyr::group_by(genus) |>
+      dplyr::mutate(n_acc = dplyr::n_distinct(acc_genus)) |>
       dplyr::ungroup() |>
       dplyr::filter(n_acc > 1)
 
@@ -321,7 +325,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
           dplyr::filter(!(acc_taxon %in%
             c(
               genus_switch$new_genus,
-              genus_split$taxon
+              genus_split$genus
             ))),
         by = "acc_taxon"
       ) |>
