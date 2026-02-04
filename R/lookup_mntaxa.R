@@ -44,7 +44,8 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
                           ),
                           excluded_duplicates = FALSE,
                           clean_duplicates = FALSE,
-                          group_accepted = FALSE) {
+                          group_accepted = FALSE,
+                          group_analysis = FALSE) {
   # turn on taxonomy levels if replacements are selected
   if (any(replace_sub_var, replace_family, replace_genus)) {
     taxonomy_levels <- TRUE
@@ -437,7 +438,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::select(-acc_taxon)
   }
 
-  if (group_accepted) {
+  if (group_accepted | group_analysis) {
     # groups propagate through all assignments, such that assigned taxa in the
     # group are put in the group, even if they are only assigned to themselves
 
@@ -474,6 +475,18 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::select(-c(acc_taxon, acc_group)) |>
       dplyr::distinct()
   }
+
+  if(group_analysis){
+
+    # add analysis codes
+    acc_lookup <- acc_lookup |>
+      dplyr::left_join(analysis_codes_v2 |>
+                         dplyr::select(taxon_id, taxon, analsyis_code)) |>
+      dplyr:mutate(analysis_group = dplyr::if_else(!is.na(analysis_code),
+                                                   analysis_code,
+                                                   acc_assignment))
+
+    }
 
   # return lookup table
   return(acc_lookup |>
