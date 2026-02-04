@@ -5,25 +5,27 @@
 #'
 #' @examples
 #' acc_sub_var <- subvar_mntaxa()
-subvar_mntaxa <- function() {
-  # accepted data with taxonomy levels needed?
-  if (!exists("acc", envir = .GlobalEnv)) {
-    missing_acc <- TRUE
-  } else if (!("acc_rank" %in% names(acc))) {
-    missing_acc <- TRUE
-  } else {
-    missing_acc <- FALSE
-  }
-
-  # load and format accepted names if not in environment
-  if (missing_acc) {
+subvar_mntaxa <- function(acc = NULL,
+                          sources = FALSE,
+                          phys = FALSE,
+                          origin = FALSE,
+                          common = FALSE,
+                          cvals = FALSE,
+                          exclude = FALSE) {
+  # only load acc if it's missing or doesn't have acc_rank
+  if (is.null(acc) || !("acc_rank" %in% names(acc))) {
     acc <- accepted_mntaxa(
-      taxonomy_levels = TRUE
+      taxonomy_levels = TRUE,
+      sources = sources,
+      phys = phys,
+      origin = origin,
+      common = common,
+      cvals = cvals,
+      exclude = exclude
     ) |>
       dplyr::rename_with(.fn = ~ paste("acc", .x, sep = "_")) |>
       dplyr::mutate(synonymy_id = acc_synonymy_id)
   }
-
   # get species-level for sub-species and varieties
   # isolate subspecies/varieties with species in accepted taxa
   # repair missing taxon names with first two words (n = 2 taxa on 1/26/26)

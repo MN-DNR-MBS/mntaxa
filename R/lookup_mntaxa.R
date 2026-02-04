@@ -120,7 +120,13 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
   if (replace_sub_var) {
     # get species as replacement for subspecies/varieties
     # remove subspecies/varieties missing species in accepted dataset
-    acc_sub_var <- subvar_mntaxa() |>
+    acc_sub_var <- subvar_mntaxa(acc = acc,
+                                 sources = sources,
+                                 phys = phys,
+                                 origin = origin,
+                                 common = common,
+                                 cvals = cvals,
+                                 exclude = exclude) |>
       dplyr::filter(acc_taxon_id_rep %in% acc$acc_taxon_id)
 
     # add replacements to data
