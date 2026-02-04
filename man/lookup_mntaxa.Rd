@@ -52,7 +52,7 @@ lookup_mntaxa(
 
 \item{clean_duplicates}{Binary option (TRUE, FALSE) to remove duplicate accepted name assignments by assigning a taxon to itself when available and assigning the most likely taxon for a handful of hand-curated duplicates. Recommended for one-to-one taxon-to-accepted look-up table.}
 
-\item{group_accepted}{Binary option (TRUE, FALSE) to group all potential accepted names. Recommended for one-to-one taxon id-to-analysis group look-up table.}
+\item{group_accepted}{Binary option (TRUE, FALSE) to group all potential accepted names. Recommended for one-to-one taxon id-to-taxonomic group look-up table.}
 }
 \value{
 Tibble of taxon names paired with accepted names and optional attributes. If both \code{clean_duplicates} and \code{group_accepted} are selected, \code{group_accepted} will be used.

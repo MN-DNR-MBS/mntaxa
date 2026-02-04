@@ -4,7 +4,15 @@
 \alias{subvar_mntaxa}
 \title{Replace accepted subspecies and varieties with species}
 \usage{
-subvar_mntaxa()
+subvar_mntaxa(
+  acc = NULL,
+  sources = FALSE,
+  phys = FALSE,
+  origin = FALSE,
+  common = FALSE,
+  cvals = FALSE,
+  exclude = FALSE
+)
 }
 \value{
 Tibble with acc_taxon_id corresponding to the subspecies/variety and columns for accepted taxon attributes associated with the corresponding species and ending with "_rep" so that they can be used to replace subspecies/variety attributes.
