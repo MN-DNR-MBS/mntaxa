@@ -481,8 +481,8 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     # add analysis codes
     acc_lookup <- acc_lookup |>
       dplyr::left_join(analysis_codes_v2 |>
-                         dplyr::select(taxon_id, taxon, analsyis_code)) |>
-      dplyr:mutate(analysis_group = dplyr::if_else(!is.na(analysis_code),
+                         dplyr::select(taxon_id, taxon, analysis_code)) |>
+      dplyr::mutate(analysis_group = dplyr::if_else(!is.na(analysis_code),
                                                    analysis_code,
                                                    acc_assignment))
 
