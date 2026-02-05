@@ -16,6 +16,7 @@
 accepted_mntaxa <- function(taxonomy_levels = FALSE,
                             sources = FALSE,
                             phys = FALSE,
+                            strata = FALSE,
                             origin = FALSE,
                             common = FALSE,
                             cvals = FALSE,
@@ -58,7 +59,7 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
   dat <- syns_raw |>
     dplyr::filter(!is.na(d_list_beg_date) & is.na(d_list_end_date)) |>
     dplyr::distinct(taxon_id, synonymy_id) |>
-    dplyr::left_join(taxa)
+    dplyr::left_join(taxa, by = "taxon_id")
 
   # add physcodes
   if (phys) {
@@ -81,6 +82,15 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
     # add to data
     dat <- dat |>
       dplyr::left_join(syn_phys)
+  }
+
+  # add modified physcodes and stratacodes
+  if (strata) {
+    # add to phys_strata data
+    dat <- dat |>
+      dplyr::left_join(phys_strata |>
+                         dplyr::rename(taxon = acc_taxon),
+                       by = "taxon")
   }
 
   # add origin
