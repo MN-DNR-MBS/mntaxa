@@ -3,6 +3,7 @@
 #' @param taxonomy_levels Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.
 #' @param sources Binary option (TRUE, FALSE) to include authorities and publications.
 #' @param phys Binary option (TRUE, FALSE) to include physiognomy.
+#' @param strata Binary option (TRUE, FALSE) to include revised physiognomy and strata codes.
 #' @param origin Binary option (TRUE, FALSE) to include origin.
 #' @param common Binary option (TRUE, FALSE) to include common names.
 #' @param cvals Binary option (TRUE, FALSE) to include c-values.

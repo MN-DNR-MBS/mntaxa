@@ -8,11 +8,31 @@ subvar_mntaxa(
   acc = NULL,
   sources = FALSE,
   phys = FALSE,
+  strata = FALSE,
   origin = FALSE,
   common = FALSE,
   cvals = FALSE,
   exclude = FALSE
 )
+}
+\arguments{
+\item{acc}{Optional accepted taxa table.}
+
+\item{sources}{Binary option (TRUE, FALSE) to include authorities and publications.}
+
+\item{phys}{Binary option (TRUE, FALSE) to include physiognomy.}
+
+\item{strata}{Binary option (TRUE, FALSE) to include revised physiognomy and strata codes.}
+
+\item{origin}{Binary option (TRUE, FALSE) to include origin.}
+
+\item{common}{Binary option (TRUE, FALSE) to include common names.}
+
+\item{cvals}{Binary option (TRUE, FALSE) to include c-values.}
+
+\item{exclude}{Binary option (TRUE, FALSE) to include information about excluding taxa from analyses.}
+
+\item{taxonomy_levels}{Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.}
 }
 \value{
 Tibble with acc_taxon_id corresponding to the subspecies/variety and columns for accepted taxon attributes associated with the corresponding species and ending with "_rep" so that they can be used to replace subspecies/variety attributes.

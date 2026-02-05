@@ -1,5 +1,15 @@
 #' Replace accepted subspecies and varieties with species
 #'
+#' @param acc Optional accepted taxa table.
+#' @param taxonomy_levels Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.
+#' @param sources Binary option (TRUE, FALSE) to include authorities and publications.
+#' @param phys Binary option (TRUE, FALSE) to include physiognomy.
+#' @param strata Binary option (TRUE, FALSE) to include revised physiognomy and strata codes.
+#' @param origin Binary option (TRUE, FALSE) to include origin.
+#' @param common Binary option (TRUE, FALSE) to include common names.
+#' @param cvals Binary option (TRUE, FALSE) to include c-values.
+#' @param exclude Binary option (TRUE, FALSE) to include information about excluding taxa from analyses.
+#'
 #' @returns Tibble with acc_taxon_id corresponding to the subspecies/variety and columns for accepted taxon attributes associated with the corresponding species and ending with "_rep" so that they can be used to replace subspecies/variety attributes.
 #' @export
 #'

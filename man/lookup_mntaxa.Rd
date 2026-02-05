@@ -8,6 +8,7 @@ lookup_mntaxa(
   taxonomy_levels = FALSE,
   sources = FALSE,
   phys = FALSE,
+  strata = FALSE,
   origin = FALSE,
   common = FALSE,
   cvals = FALSE,
@@ -20,7 +21,8 @@ lookup_mntaxa(
     "Spirogyra", "Tolypella"),
   excluded_duplicates = FALSE,
   clean_duplicates = FALSE,
-  group_accepted = FALSE
+  group_accepted = FALSE,
+  group_analysis = FALSE
 )
 }
 \arguments{
@@ -29,6 +31,8 @@ lookup_mntaxa(
 \item{sources}{Binary option (TRUE, FALSE) to include authorities and publications.}
 
 \item{phys}{Binary option (TRUE, FALSE) to include physiognomy.}
+
+\item{strata}{Binary option (TRUE, FALSE) to include revised physiognomy and strata codes.}
 
 \item{origin}{Binary option (TRUE, FALSE) to include origin.}
 
