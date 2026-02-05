@@ -362,19 +362,6 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::distinct()
   }
 
-  if (drop_higher) {
-    # drop family and genera that have multiple species in MNTaxa
-    # add parent
-    # drop offspring if their parent species is an assignment and matches rank
-    # of taxon
-    acc_lookup <- acc_lookup |>
-      dplyr::filter(acc_rank %in% c(
-        "species", "subspecies", "variety",
-        "subspecies variety"
-      ) |
-        acc_taxon %in% higher_include)
-  }
-
   if (excluded_duplicates) {
     # number of accepted matches per taxon
     acc_matches <- acc_lookup |>
@@ -396,6 +383,25 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     # remove these excluded duplicates
     acc_lookup <- acc_lookup |>
       dplyr::anti_join(acc_dups_exclude)
+  }
+
+  if (drop_higher) {
+
+    if(group_analysis) {
+      # save higher taxa info if needed for analysis groups
+      acc_lookup_higher <- acc_lookup
+    }
+
+    # drop family and genera that have multiple species in MNTaxa
+    # add parent
+    # drop offspring if their parent species is an assignment and matches rank
+    # of taxon
+    acc_lookup <- acc_lookup |>
+      dplyr::filter(acc_rank %in% c(
+        "species", "subspecies", "variety",
+        "subspecies variety"
+      ) |
+        acc_taxon %in% higher_include)
   }
 
   if (clean_duplicates & !group_accepted) {
@@ -481,6 +487,54 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
   }
 
   if(group_analysis){
+
+    # get current acc_assignments based on taxa
+    # add all taxa
+    acodes_assigned <- analysis_codes_v2 |>
+      dplyr::select(taxon_id, analysis_code) |>
+      dplyr::inner_join(acc_lookup |>
+                          dplyr::select(taxon_id, acc_assignment),
+                        by = "taxon_id") |>
+      dplyr::select(-taxon_id) |>
+      dplyr::distinct() |>
+      dplyr::left_join(acc_lookup, by = "acc_assignment")
+
+    # if higher were dropped, add back in if they have an analysis group
+    if(drop_higher) {
+
+      # get acc info for dropped higher
+      acodes_higher <- analysis_codes_v2 |>
+        dplyr::select(taxon_id, analysis_code) |>
+        dplyr::inner_join(acc_lookup_higher |>
+                            dplyr::anti_join(acodes_assigned |>
+                                               dplyr::distinct(taxon_id),
+                                             by = "taxon_id"),
+                          by = "taxon_id") |>
+        dplyr::rename(acc_assignment = acc_taxon) |>
+        dplyr::select(names(acodes_assigned)) |>
+        dplyr::mutate(across(
+          where(is.numeric) &
+            (starts_with("acc") | all_of("synonymy_id")),
+          as.character))
+
+      # add to acodes_assigned
+      acodes_assigned <- acodes_assigned |>
+        dplyr::bind_rows(acodes_higher)
+    }
+
+    # analysis code taxa with no accepted taxa (a few hard-coded releve groups)
+    # combine all analysis codes
+    acodes <- analysis_codes_v2 |>
+      dplyr::select(taxon_id, taxon, analysis_code) |>
+      dplyr::anti_join(acodes_assigned |>
+                         dplyr::select(taxon_id)) |>
+      dplyr::anti_join(acodes_higher |>
+                         dplyr::select(taxon_id)) |>
+      dplyr::full_join(acodes_assigned)
+
+    #### start here ####
+    # decide whether attributes need to be summarized or if below is good
+    # use full_join to include all taxa with analysis codes
 
     # add analysis codes
     acc_lookup <- acc_lookup |>
