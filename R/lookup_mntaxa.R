@@ -198,7 +198,8 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         (n_spp == 0 & n_gen == 1 & acc_genus == acc_taxon) |
           (n_spp == 1 & n_gen == 1 & acc_species == acc_taxon) |
           (n_spp == 1 & n_gen == 1 & n_sub == 1 &
-             !(acc_species %in% acc_lookup$acc_taxon))) |>
+            !(acc_species %in% acc_lookup$acc_taxon))
+      ) |>
       dplyr::mutate(acc_taxon_rep = acc_taxon) |>
       dplyr::distinct(acc_family, acc_taxon_rep) |>
       dplyr::rename(acc_taxon = acc_family) |>
@@ -288,12 +289,14 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     acc_single_gen <- acc_syns_levels |>
       dplyr::filter(acc_rank %in% c("subspecies", "variety", "species")) |>
       dplyr::group_by(acc_genus) |>
-      dplyr::mutate(n_sub = sum(acc_rank %in% c("subspecies", "variety")),
-                    n_spp = dplyr::n_distinct(acc_species, na.rm = T)) |>
+      dplyr::mutate(
+        n_sub = sum(acc_rank %in% c("subspecies", "variety")),
+        n_spp = dplyr::n_distinct(acc_species, na.rm = T)
+      ) |>
       dplyr::ungroup() |>
       dplyr::filter((n_spp == 1 & acc_species == acc_taxon) |
-                      (n_spp == 1 & n_sub == 1 &
-                         !(acc_species %in% acc_lookup$acc_taxon)))|>
+        (n_spp == 1 & n_sub == 1 &
+          !(acc_species %in% acc_lookup$acc_taxon))) |>
       dplyr::mutate(acc_taxon_rep = acc_taxon) |>
       dplyr::distinct(acc_genus, acc_taxon_rep) |>
       dplyr::rename(acc_taxon = acc_genus) |>
@@ -435,14 +438,14 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::filter(((in_acc == 0 & species_in_acc == 0) |
         (in_acc == 1 & taxon == acc_taxon) |
         (species_in_acc == 1 & stringr::word(taxon, 1, 2) == acc_taxon)) &
-          !(taxon == "Arabis holboellii" &
-            acc_taxon == "Boechera retrofracta") &
-          !(taxon == "Botrychium lunaria" &
-            acc_taxon == "Botrychium crenulatum") &
-          !(taxon == "Chamerion angustifolium subsp. angustifolium" &
-            acc_taxon == "Eriophorum angustifolium") &
-          !(taxon == "Quercus x schuettei" &
-            acc_taxon == "Quercus x hillii")) |>
+        !(taxon == "Arabis holboellii" &
+          acc_taxon == "Boechera retrofracta") &
+        !(taxon == "Botrychium lunaria" &
+          acc_taxon == "Botrychium crenulatum") &
+        !(taxon == "Chamerion angustifolium subsp. angustifolium" &
+          acc_taxon == "Eriophorum angustifolium") &
+        !(taxon == "Quercus x schuettei" &
+          acc_taxon == "Quercus x hillii")) |>
       dplyr::group_by(taxon, hybrid, rank) |>
       dplyr::summarize(
         dplyr::across(
