@@ -13,7 +13,7 @@
 #' @param replace_genus Binary option (TRUE, FALSE) to replace genera with species when only one species is included in MNtaxa.
 #' @param drop_higher Binary option (TRUE, FALSE) to drop taxonomic levels above species from the accepted taxa list. Implemented after `replace_family` and `replace_genus`. See `higher_include` for exceptions.
 #' @param higher_include Vector of accepted genera or family names to be include in look-up table. The default are included because they don't have lower taxa in the accepted species list (Belonia, Chara, Lychnothamnus, Nitella, Nitellopsis, Spirogyra, Tolypella). Only implemented if `drop_higher` = TRUE..
-#' @param excluded_duplicates Binary option (TRUE, FALSE) to reduce duplicate accepted name assignments by removing those with exclusions documented in MNTaxa.
+#' @param excluded_duplicates Binary option (TRUE, FALSE) to reduce multiple accepted name assignments for a taxon_id by removing those with exclusions documented in MNTaxa.
 #' @param clean_duplicates Binary option (TRUE, FALSE) to remove duplicate accepted name assignments by assigning a taxon to itself when available and assigning the most likely taxon for a handful of hand-curated duplicates. Recommended for one-to-one taxon-to-accepted look-up table.
 #' @param group_accepted Binary option (TRUE, FALSE) to group all potential accepted names. Recommended for one-to-one taxon id-to-taxonomic group look-up table.
 
@@ -363,9 +363,9 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
   }
 
   if (excluded_duplicates) {
-    # number of accepted matches per taxon
-    acc_matches <- acc_lookup |>
-      dplyr::group_by(taxon) |>
+    # number of accepted matches per taxon_id
+    acc_matches_id <- acc_lookup |>
+      dplyr::group_by(taxon_id) |>
       dplyr::mutate(n_acc = dplyr::n_distinct(acc_taxon)) |>
       dplyr::ungroup()
 
@@ -497,7 +497,8 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
                         by = "taxon_id") |>
       dplyr::select(-taxon_id) |>
       dplyr::distinct() |>
-      dplyr::left_join(acc_lookup, by = "acc_assignment")
+      dplyr::left_join(acc_lookup, by = "acc_assignment") |>
+      dplyr::select(c(names(acc_lookup), analysis_code))
 
     # if higher were dropped, add back in if they have an analysis group
     if(drop_higher) {
@@ -522,24 +523,21 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         dplyr::bind_rows(acodes_higher)
     }
 
-    # analysis code taxa with no accepted taxa (a few hard-coded releve groups)
-    # combine all analysis codes
-    acodes <- analysis_codes_v2 |>
-      dplyr::select(taxon_id, taxon, analysis_code) |>
-      dplyr::anti_join(acodes_assigned |>
-                         dplyr::select(taxon_id)) |>
-      dplyr::anti_join(acodes_higher |>
-                         dplyr::select(taxon_id)) |>
-      dplyr::full_join(acodes_assigned)
-
     #### start here ####
-    # decide whether attributes need to be summarized or if below is good
-    # use full_join to include all taxa with analysis codes
+    # combine all analysis codes
+    # analysis code taxa with no accepted taxa (a few hard-coded releve groups)
+    acodes <- acodes_assigned |>
+      dplyr::full_join(analysis_codes_v2 |>
+                         dplyr::select(taxon_id, taxon, analysis_code) |>
+                         dplyr::anti_join(acodes_assigned |>
+                                            dplyr::select(taxon_id),
+                                          by = "taxon_id"))
 
     # add analysis codes
     acc_lookup <- acc_lookup |>
-      dplyr::left_join(analysis_codes_v2 |>
-                         dplyr::select(taxon_id, taxon, analysis_code)) |>
+      dplyr::anti_join(acodes |>
+                         dplyr::select(taxon_id, taxon)) |>
+      dplyr::bind_rows(acodes) |>
       dplyr::mutate(analysis_group = dplyr::if_else(!is.na(analysis_code),
                                                    analysis_code,
                                                    acc_assignment))

@@ -70,7 +70,7 @@ syns_genus <- lookup_mntaxa(taxonomy_levels = FALSE,
                             ),
                             excluded_duplicates = TRUE,
                             clean_duplicates = FALSE,
-                            group_accepted = TRUE,
+                            group_accepted = FALSE,
                             group_analysis = FALSE)
 taxa <- taxa_mntaxa(taxonomy_levels = FALSE,
                     sources = FALSE)
@@ -235,16 +235,12 @@ sort(unique(groups_spp$analysis_code))
 # select for genera in groups
 syns_genus2 <- syns_genus %>%
   filter(rank == "genus" &
-           str_detect(acc_assignment,
+           str_detect(acc_taxon,
                       "Agrimonia|Bidens|Crataegus|Cuscuta|Hackelia|Impatiens|Parthenocissus|Pilea|Sonchus|Taraxacum|Wolffia"))
 
-syns_genus %>%
-  filter(rank == "genus" &
-           str_detect(acc_assignment, "Hackelia"))
-
 # taxa that don't match assignment
-filter(syns_genus2, taxon != acc_assignment) %>%
-  distinct(taxon, acc_assignment)
+filter(syns_genus2, taxon != acc_taxon) %>%
+  distinct(taxon, acc_taxon)
 
 # create codes based on within-genus lumping
 # select all taxa with the genus in its accepted assignment
@@ -253,7 +249,8 @@ groups_genus <- syns %>%
                     "Agrimonia|Bidens|Crataegus|Cuscuta|Hackelia|Impatiens|Parthenocissus|Pilea|Sonchus|Taraxacum|Wolffia")) %>%
   distinct(taxon_id, taxon, acc_assignment) %>%
   full_join(syns_genus2 %>%
-              distinct(taxon_id, taxon, acc_assignment)) %>%
+              distinct(taxon_id, taxon, acc_taxon) %>%
+              rename(acc_assignment = acc_taxon)) %>%
   mutate(analysis_code = paste(word(acc_assignment, 1, 1), "genus"))
 
 # check codes
@@ -386,17 +383,11 @@ genera_syns3 <- genera_syns2 %>%
               filter(taxon == genus | str_detect(taxon, "\\(")) %>%
               distinct(taxon, acc_assignment, analysis_code) %>%
               left_join(syns_genus %>%
-                          distinct(taxon_id, taxon))) # %>%
-# left_join(syns %>%
-#             select(starts_with("dlist")) %>%
-#             distinct())
+                          distinct(taxon_id, taxon)))
 
 # check for duplicates
 get_dupes(genera_syns3, taxon_id) %>%
   select(taxon_id, taxon, acc_assignment, analysis_code)
-# genera_syns3 %>%
-#   distinct(analysis_code, acc_full_name) %>%
-#   get_dupes(analysis_code) # checking for multiple versions of accepted species
 
 # check that all are still there
 n_distinct(genera_syns2$analysis_code) == n_distinct(genera_syns3$analysis_code)
@@ -414,21 +405,48 @@ get_dupes(groups_fin, taxon_id) %>%
   distinct(taxon_id, taxon, analysis_code)
 # three missing taxon IDs
 
+
+#### releve taxa ####
+
 # fix missing IDs (from releve data)
 missing_IDs <- tibble(taxon_id_rep = c(64210, 64532),
                       taxon = rep("Vaccinium (Blueberry)", 2))
 
+# add taxa from releves (hard-coded groups)
+releve_taxa <- tibble(taxon_id = c(64727, 64574, 64812, 64551, 64552),
+                      taxon = c("Epilobium ciliatum/coloratum/glandulosum",
+                                "Epilobium leptophyllum/palustre/strictum",
+                                "Helianthus giganteus s.s./grosseserratus/nuttallii",
+                                "Rubus alleghenisis group",
+                                "Rubus alleghenisis group"),
+                      analysis_code = c("Epilobium ecological group 1",
+                                        "Epilobium ecological group 2",
+                                        "Helianthus ecological group",
+                                        "Rubus ecological group",
+                                        "Rubus ecological group"))
+
 # add missing taxon IDs (from releve data)
-analysis_codes_v2 <- groups_fin %>%
+# add releve taxa
+groups_fin2 <- groups_fin %>%
   left_join(missing_IDs) %>%
   mutate(taxon_id = if_else(is.na(taxon_id) & !is.na(taxon_id_rep),
                             taxon_id_rep, taxon_id)) %>%
-  select(-taxon_id_rep)
+  select(-taxon_id_rep) %>%
+  full_join(releve_taxa)
 
-get_dupes(analysis_codes_v2, taxon_id) %>%
-  distinct(taxon_id, taxon, analysis_code)
+# check taxa
+get_dupes(groups_fin2, taxon_id) %>%
+  distinct(taxon_id, taxon, acc_assignment, analysis_code)
 
-filter(analysis_codes_v2, taxon == "Vaccinium (Blueberry)")
+filter(groups_fin2, taxon == "Vaccinium (Blueberry)")
+
+filter(groups_fin2, is.na(acc_assignment))
+
+
+#### save ####
+
+# rename
+analysis_codes_v2 <- groups_fin2
 
 # save data
 use_data(analysis_codes_v2, overwrite = TRUE)

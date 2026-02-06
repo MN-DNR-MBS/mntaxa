@@ -52,7 +52,7 @@ lookup_mntaxa(
 
 \item{higher_include}{Vector of accepted genera or family names to be include in look-up table. The default are included because they don't have lower taxa in the accepted species list (Belonia, Chara, Lychnothamnus, Nitella, Nitellopsis, Spirogyra, Tolypella). Only implemented if \code{drop_higher} = TRUE..}
 
-\item{excluded_duplicates}{Binary option (TRUE, FALSE) to reduce duplicate accepted name assignments by removing those with exclusions documented in MNTaxa.}
+\item{excluded_duplicates}{Binary option (TRUE, FALSE) to reduce multiple accepted name assignments for a taxon_id by removing those with exclusions documented in MNTaxa.}
 
 \item{clean_duplicates}{Binary option (TRUE, FALSE) to remove duplicate accepted name assignments by assigning a taxon to itself when available and assigning the most likely taxon for a handful of hand-curated duplicates. Recommended for one-to-one taxon-to-accepted look-up table.}
 
