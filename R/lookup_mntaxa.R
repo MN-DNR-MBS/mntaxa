@@ -189,15 +189,17 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       )) |>
       dplyr::group_by(acc_family) |>
       dplyr::mutate(
+        n_sub = sum(acc_rank %in% c("subspecies", "variety")),
         n_spp = dplyr::n_distinct(acc_species, na.rm = T),
         n_gen = dplyr::n_distinct(acc_genus, na.rm = T)
       ) |>
       dplyr::ungroup() |>
-      dplyr::filter((n_spp == 1 & !is.na(acc_species)) |
-        (n_spp == 0 & n_gen == 1)) |>
-      dplyr::mutate(acc_taxon_rep = dplyr::if_else(!is.na(acc_species), acc_species,
-        acc_genus
-      )) |>
+      dplyr::filter(
+        (n_spp == 0 & n_gen == 1 & acc_genus == acc_taxon) |
+          (n_spp == 1 & n_gen == 1 & acc_species == acc_taxon) |
+          (n_spp == 1 & n_gen == 1 & n_sub == 1 &
+             !(acc_species %in% acc_lookup$acc_taxon))) |>
+      dplyr::mutate(acc_taxon_rep = acc_taxon) |>
       dplyr::distinct(acc_family, acc_taxon_rep) |>
       dplyr::rename(acc_taxon = acc_family) |>
       dplyr::left_join(
@@ -286,9 +288,12 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     acc_single_gen <- acc_syns_levels |>
       dplyr::filter(acc_rank %in% c("subspecies", "variety", "species")) |>
       dplyr::group_by(acc_genus) |>
-      dplyr::mutate(n_spp = dplyr::n_distinct(acc_species, na.rm = T)) |>
+      dplyr::mutate(n_sub = sum(acc_rank %in% c("subspecies", "variety")),
+                    n_spp = dplyr::n_distinct(acc_species, na.rm = T)) |>
       dplyr::ungroup() |>
-      dplyr::filter(n_spp == 1 & !is.na(acc_species)) |>
+      dplyr::filter((n_spp == 1 & acc_species == acc_taxon) |
+                      (n_spp == 1 & n_sub == 1 &
+                         !(acc_species %in% acc_lookup$acc_taxon)))|>
       dplyr::mutate(acc_taxon_rep = acc_taxon) |>
       dplyr::distinct(acc_genus, acc_taxon_rep) |>
       dplyr::rename(acc_taxon = acc_genus) |>
@@ -371,7 +376,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
 
   if (excluded_duplicates) {
     # number of accepted matches per taxon_id
-    acc_matches_id <- acc_lookup |>
+    acc_matches <- acc_lookup |>
       dplyr::group_by(taxon_id) |>
       dplyr::mutate(n_acc = dplyr::n_distinct(acc_taxon)) |>
       dplyr::ungroup()
@@ -427,9 +432,9 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
             acc_taxon, 1, 0)
       ) |>
       dplyr::ungroup() |>
-      dplyr::filter((in_acc == 0 & species_in_acc == 0) |
+      dplyr::filter(((in_acc == 0 & species_in_acc == 0) |
         (in_acc == 1 & taxon == acc_taxon) |
-        (species_in_acc == 1 & stringr::word(taxon, 1, 2) == acc_taxon) &
+        (species_in_acc == 1 & stringr::word(taxon, 1, 2) == acc_taxon)) &
           !(taxon == "Arabis holboellii" &
             acc_taxon == "Boechera retrofracta") &
           !(taxon == "Botrychium lunaria" &
