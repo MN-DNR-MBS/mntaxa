@@ -418,7 +418,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         acc_taxon %in% higher_include)
   }
 
-  if (clean_duplicates & !group_accepted) {
+  if (clean_duplicates & !group_accepted & !group_analysis) {
     # if a taxon is accepted, make it's only accepted taxon itself
     # if its parent is accepted and a match, use parent
     # manual corrections for the most likely taxon someone would be recording
@@ -517,7 +517,9 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
 
     # if higher were dropped, add back in if they have an analysis group
     if (drop_higher) {
+
       # get acc info for dropped higher
+      # collapse if multiple acc_taxon for a given taxon_id
       acodes_higher <- analysis_codes_v2 |>
         dplyr::select(taxon_id, analysis_code) |>
         dplyr::inner_join(
@@ -529,8 +531,19 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
             ),
           by = "taxon_id"
         ) |>
-        dplyr::rename(acc_assignment = acc_taxon) |>
+        dplyr::group_by(taxon_id) |>
+        dplyr::mutate(dplyr::across(
+          c(starts_with("acc_"), synonymy_id),
+          ~ paste(sort(unique(.x)), collapse = "/")
+        )) |>
+        dplyr::ungroup() |>
+        dplyr::mutate(acc_assignment = dplyr::if_else(
+          stringr::str_detect(acc_taxon, "/"),
+          purrr::map_chr(stringr::str_split(acc_taxon, "/"), combine_names),
+          acc_taxon
+        )) |>
         dplyr::select(names(acodes_assigned)) |>
+        dplyr::distinct() |>
         dplyr::mutate(across(
           where(is.numeric) &
             (starts_with("acc") | all_of("synonymy_id")),
