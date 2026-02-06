@@ -89,9 +89,11 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
   if (strata) {
     # add to phys_strata data
     dat <- dat |>
-      dplyr::left_join(phys_strata |>
-                         dplyr::rename(taxon = acc_taxon),
-                       by = "taxon")
+      dplyr::left_join(
+        phys_strata |>
+          dplyr::rename(taxon = acc_taxon),
+        by = "taxon"
+      )
   }
 
   # add origin

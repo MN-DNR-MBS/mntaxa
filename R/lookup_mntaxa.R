@@ -124,14 +124,16 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
   if (replace_sub_var) {
     # get species as replacement for subspecies/varieties
     # remove subspecies/varieties missing species in accepted dataset
-    acc_sub_var <- subvar_mntaxa(acc = acc,
-                                 sources = sources,
-                                 phys = phys,
-                                 strata = strata,
-                                 origin = origin,
-                                 common = common,
-                                 cvals = cvals,
-                                 exclude = exclude) |>
+    acc_sub_var <- subvar_mntaxa(
+      acc = acc,
+      sources = sources,
+      phys = phys,
+      strata = strata,
+      origin = origin,
+      common = common,
+      cvals = cvals,
+      exclude = exclude
+    ) |>
       dplyr::filter(acc_taxon_id_rep %in% acc$acc_taxon_id)
 
     # add replacements to data
@@ -299,15 +301,20 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
 
     # genera that have multiple accepted genera
     genus_split <- acc_lookup |>
-      dplyr::filter(rank %in% c("genus", "species", "subspecies", "variety",
-                                "subspecies variety")) |>
-      dplyr::left_join(tax_levels |>
-                         dplyr::select(acc_taxon_id, acc_genus),
-                       by = "acc_taxon_id") |>
+      dplyr::filter(rank %in% c(
+        "genus", "species", "subspecies", "variety",
+        "subspecies variety"
+      )) |>
+      dplyr::left_join(
+        tax_levels |>
+          dplyr::select(acc_taxon_id, acc_genus),
+        by = "acc_taxon_id"
+      ) |>
       dplyr::mutate(genus = dplyr::case_when(
         rank == "genus" ~ taxon,
         rank == "species" & !is.na(parent_taxon) ~ parent_taxon,
-        TRUE ~ stringr::word(taxon, 1))) |>
+        TRUE ~ stringr::word(taxon, 1)
+      )) |>
       dplyr::group_by(genus) |>
       dplyr::mutate(n_acc = dplyr::n_distinct(acc_genus)) |>
       dplyr::ungroup() |>
@@ -386,8 +393,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
   }
 
   if (drop_higher) {
-
-    if(group_analysis) {
+    if (group_analysis) {
       # save higher taxa info if needed for analysis groups
       acc_lookup_higher <- acc_lookup
     }
@@ -486,37 +492,42 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::distinct()
   }
 
-  if(group_analysis){
-
+  if (group_analysis) {
     # get current acc_assignments based on taxa
     # add all taxa
     acodes_assigned <- analysis_codes_v2 |>
       dplyr::select(taxon_id, analysis_code) |>
-      dplyr::inner_join(acc_lookup |>
-                          dplyr::select(taxon_id, acc_assignment),
-                        by = "taxon_id") |>
+      dplyr::inner_join(
+        acc_lookup |>
+          dplyr::select(taxon_id, acc_assignment),
+        by = "taxon_id"
+      ) |>
       dplyr::select(-taxon_id) |>
       dplyr::distinct() |>
       dplyr::left_join(acc_lookup, by = "acc_assignment") |>
       dplyr::select(c(names(acc_lookup), analysis_code))
 
     # if higher were dropped, add back in if they have an analysis group
-    if(drop_higher) {
-
+    if (drop_higher) {
       # get acc info for dropped higher
       acodes_higher <- analysis_codes_v2 |>
         dplyr::select(taxon_id, analysis_code) |>
-        dplyr::inner_join(acc_lookup_higher |>
-                            dplyr::anti_join(acodes_assigned |>
-                                               dplyr::distinct(taxon_id),
-                                             by = "taxon_id"),
-                          by = "taxon_id") |>
+        dplyr::inner_join(
+          acc_lookup_higher |>
+            dplyr::anti_join(
+              acodes_assigned |>
+                dplyr::distinct(taxon_id),
+              by = "taxon_id"
+            ),
+          by = "taxon_id"
+        ) |>
         dplyr::rename(acc_assignment = acc_taxon) |>
         dplyr::select(names(acodes_assigned)) |>
         dplyr::mutate(across(
           where(is.numeric) &
             (starts_with("acc") | all_of("synonymy_id")),
-          as.character))
+          as.character
+        ))
 
       # add to acodes_assigned
       acodes_assigned <- acodes_assigned |>
@@ -528,21 +539,23 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     # analysis code taxa with no accepted taxa (a few hard-coded releve groups)
     acodes <- acodes_assigned |>
       dplyr::full_join(analysis_codes_v2 |>
-                         dplyr::select(taxon_id, taxon, analysis_code) |>
-                         dplyr::anti_join(acodes_assigned |>
-                                            dplyr::select(taxon_id),
-                                          by = "taxon_id"))
+        dplyr::select(taxon_id, taxon, analysis_code) |>
+        dplyr::anti_join(
+          acodes_assigned |>
+            dplyr::select(taxon_id),
+          by = "taxon_id"
+        ))
 
     # add analysis codes
     acc_lookup <- acc_lookup |>
       dplyr::anti_join(acodes |>
-                         dplyr::select(taxon_id, taxon)) |>
+        dplyr::select(taxon_id, taxon)) |>
       dplyr::bind_rows(acodes) |>
       dplyr::mutate(analysis_group = dplyr::if_else(!is.na(analysis_code),
-                                                   analysis_code,
-                                                   acc_assignment))
-
-    }
+        analysis_code,
+        acc_assignment
+      ))
+  }
 
   # return lookup table
   return(acc_lookup |>

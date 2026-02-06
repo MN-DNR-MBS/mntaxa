@@ -22,58 +22,64 @@ codes_2003 <- read_csv("../npc-releve/data/analcode2_2003_DBF.csv")
 codes_2005 <- read_csv("../npc-releve/data/analcode3_2005_DBF.csv")
 
 # import taxa
-syns <- lookup_mntaxa(taxonomy_levels = FALSE,
-                      sources = FALSE,
-                      phys = FALSE,
-                      strata = FALSE,
-                      origin = FALSE,
-                      common = FALSE,
-                      cvals = FALSE,
-                      exclude = FALSE,
-                      replace_sub_var = TRUE,
-                      replace_family = TRUE,
-                      replace_genus = TRUE,
-                      drop_higher = TRUE,
-                      higher_include = c(
-                        "Belonia",
-                        "Chara",
-                        "Lychnothamnus",
-                        "Nitella",
-                        "Nitellopsis",
-                        "Spirogyra",
-                        "Tolypella"
-                      ),
-                      excluded_duplicates = TRUE,
-                      clean_duplicates = FALSE,
-                      group_accepted = TRUE,
-                      group_analysis = FALSE)
-syns_genus <- lookup_mntaxa(taxonomy_levels = FALSE,
-                            sources = FALSE,
-                            phys = FALSE,
-                            strata = FALSE,
-                            origin = FALSE,
-                            common = FALSE,
-                            cvals = FALSE,
-                            exclude = FALSE,
-                            replace_sub_var = TRUE,
-                            replace_family = TRUE,
-                            replace_genus = TRUE,
-                            drop_higher = FALSE,
-                            higher_include = c(
-                              "Belonia",
-                              "Chara",
-                              "Lychnothamnus",
-                              "Nitella",
-                              "Nitellopsis",
-                              "Spirogyra",
-                              "Tolypella"
-                            ),
-                            excluded_duplicates = TRUE,
-                            clean_duplicates = FALSE,
-                            group_accepted = FALSE,
-                            group_analysis = FALSE)
-taxa <- taxa_mntaxa(taxonomy_levels = FALSE,
-                    sources = FALSE)
+syns <- lookup_mntaxa(
+  taxonomy_levels = FALSE,
+  sources = FALSE,
+  phys = FALSE,
+  strata = FALSE,
+  origin = FALSE,
+  common = FALSE,
+  cvals = FALSE,
+  exclude = FALSE,
+  replace_sub_var = TRUE,
+  replace_family = TRUE,
+  replace_genus = TRUE,
+  drop_higher = TRUE,
+  higher_include = c(
+    "Belonia",
+    "Chara",
+    "Lychnothamnus",
+    "Nitella",
+    "Nitellopsis",
+    "Spirogyra",
+    "Tolypella"
+  ),
+  excluded_duplicates = TRUE,
+  clean_duplicates = FALSE,
+  group_accepted = TRUE,
+  group_analysis = FALSE
+)
+syns_genus <- lookup_mntaxa(
+  taxonomy_levels = FALSE,
+  sources = FALSE,
+  phys = FALSE,
+  strata = FALSE,
+  origin = FALSE,
+  common = FALSE,
+  cvals = FALSE,
+  exclude = FALSE,
+  replace_sub_var = TRUE,
+  replace_family = TRUE,
+  replace_genus = TRUE,
+  drop_higher = FALSE,
+  higher_include = c(
+    "Belonia",
+    "Chara",
+    "Lychnothamnus",
+    "Nitella",
+    "Nitellopsis",
+    "Spirogyra",
+    "Tolypella"
+  ),
+  excluded_duplicates = TRUE,
+  clean_duplicates = FALSE,
+  group_accepted = FALSE,
+  group_analysis = FALSE
+)
+taxa <- taxa_mntaxa(
+  taxonomy_levels = FALSE,
+  sources = FALSE
+)
 
 
 #### extract groups ####
@@ -81,16 +87,20 @@ taxa <- taxa_mntaxa(taxonomy_levels = FALSE,
 # 2003 groups
 groups_2003 <- codes_2003 %>%
   group_by(ANALCODE) %>%
-  mutate(n_genera = n_distinct(GENUS),
-         n_species = n_distinct(SPECIES, na.rm = T)) %>%
+  mutate(
+    n_genera = n_distinct(GENUS),
+    n_species = n_distinct(SPECIES, na.rm = T)
+  ) %>%
   ungroup() %>%
   filter(n_genera > 1 | n_species > 1)
 
 # 2005 groups
 groups_2005 <- codes_2005 %>%
   group_by(ANALCODE) %>%
-  mutate(n_genera = n_distinct(GENUS),
-         n_species = n_distinct(SPECIES, na.rm = T)) %>%
+  mutate(
+    n_genera = n_distinct(GENUS),
+    n_species = n_distinct(SPECIES, na.rm = T)
+  ) %>%
   ungroup() %>%
   filter(n_genera > 1 | n_species > 1)
 
@@ -100,11 +110,11 @@ groups_2005 <- codes_2005 %>%
 # unique to 2003
 unique_2003 <- groups_2003 %>%
   anti_join(groups_2005 %>%
-              distinct(LNAME)) %>%
+    distinct(LNAME)) %>%
   select(LNAME, ANALCODE) %>%
   left_join(groups_2005 %>%
-              distinct(ANALCODE) %>%
-              mutate(code_2005 = 1))
+    distinct(ANALCODE) %>%
+    mutate(code_2005 = 1))
 # Antennaria species identified by Robert Dana as being unique were removed in 2005
 # same for Lactuca
 # Lemna group removed in 2005 (not in dataset at all, maybe because aquatic)
@@ -122,11 +132,11 @@ filter(codes_2005, str_detect(LNAME, "Lemna"))
 # unique to 2005
 unique_2005 <- groups_2005 %>%
   anti_join(groups_2003 %>%
-              distinct(LNAME)) %>%
+    distinct(LNAME)) %>%
   select(LNAME, ANALCODE) %>%
   left_join(groups_2003 %>%
-              distinct(ANALCODE) %>%
-              mutate(code_2003 = 1))
+    distinct(ANALCODE) %>%
+    mutate(code_2003 = 1))
 # most are new codes (not in email discussion notes)
 # some are new species
 
@@ -147,17 +157,22 @@ filter(groups_2005, n_genera == 1 & is.na(SPECIES))
 # create name based on all species
 groups <- groups_2005 %>%
   full_join(groups_2003 %>%
-              filter(ANALCODE == "TYPHA" & LNAME != "Typha latifolia")) %>%
+    filter(ANALCODE == "TYPHA" & LNAME != "Typha latifolia")) %>%
   filter(n_genera > 1 | !is.na(SPECIES)) %>%
   group_by(ANALCODE) %>%
   mutate(analysis_name = paste(sort(unique(LNAME)), collapse = "/")) %>%
   ungroup() %>%
-  transmute(taxon = LNAME,
-            analysis_code = ANALCODE,
-            analysis_name = if_else(str_detect(analysis_name, "/"),
-                                    purrr::map_chr(str_split(analysis_name, "/"),
-                                                   combine_names),
-                                    analysis_name))
+  transmute(
+    taxon = LNAME,
+    analysis_code = ANALCODE,
+    analysis_name = if_else(str_detect(analysis_name, "/"),
+      purrr::map_chr(
+        str_split(analysis_name, "/"),
+        combine_names
+      ),
+      analysis_name
+    )
+  )
 
 sort(unique(groups$analysis_code))
 
@@ -165,9 +180,11 @@ sort(unique(groups$analysis_code))
 # only include groups with multiple dlist_assignments
 groups_syns <- groups %>%
   mutate(taxon = str_replace(taxon, "Typha glauca", "Typha x glauca")) %>%
-  left_join(syns %>%
-              distinct(taxon, acc_assignment),
-            relationship = "many-to-many") %>%
+  left_join(
+    syns %>%
+      distinct(taxon, acc_assignment),
+    relationship = "many-to-many"
+  ) %>%
   group_by(analysis_code) %>%
   mutate(n_dlist = n_distinct(acc_assignment, na.rm = T)) %>%
   ungroup() %>%
@@ -198,36 +215,46 @@ sort(unique(groups_syns$analysis_code))
 # find dlist assignment
 # add all taxa belonging to accepted assignment
 groups_spp <- groups_syns %>%
-  filter((analysis_code %in% c("ACERSAC2", "AMEL_CMX", "ASTEERIC", "CORACMX1",
-                               "DRYO_CMX", "EPIL_CM1", "EPIL_CM2", "GALI_CM1",
-                               "HELI_CMX", "LACT_CMX", "LYCO_CM1", "ROSA_CMX",
-                               "RUBU_CM1", "SCIR_CP2", "SENE_CP1", "SENE_CP2",
-                               "SMIL_CMX", "SORB_CMX", "SYMP_CMX", "TORRPALL",
-                               "TYPH_CMX", "VIOL_CM1", "VIOL_CM2", "VIOL_CM3",
-                               "VIOL_CM4") |
-            (str_detect(acc_assignment, "Oxalis") &
-               str_detect(acc_assignment, "violacea") == F))  &
-           !is.na(acc_assignment)) %>% # applies to taxa no longer in MNTaxa
+  filter((analysis_code %in% c(
+    "ACERSAC2", "AMEL_CMX", "ASTEERIC", "CORACMX1",
+    "DRYO_CMX", "EPIL_CM1", "EPIL_CM2", "GALI_CM1",
+    "HELI_CMX", "LACT_CMX", "LYCO_CM1", "ROSA_CMX",
+    "RUBU_CM1", "SCIR_CP2", "SENE_CP1", "SENE_CP2",
+    "SMIL_CMX", "SORB_CMX", "SYMP_CMX", "TORRPALL",
+    "TYPH_CMX", "VIOL_CM1", "VIOL_CM2", "VIOL_CM3",
+    "VIOL_CM4"
+  ) |
+    (str_detect(acc_assignment, "Oxalis") &
+      str_detect(acc_assignment, "violacea") == F)) &
+    !is.na(acc_assignment)) %>% # applies to taxa no longer in MNTaxa
   distinct(analysis_code, acc_assignment) %>%
   left_join(syns %>%
-              select(taxon_id, taxon, acc_assignment)) %>%
+    select(taxon_id, taxon, acc_assignment)) %>%
   mutate(analysis_code_old = analysis_code) %>%
   group_by(analysis_code_old) %>%
   mutate(analysis_code = if_else(analysis_code_old == "TORRPALL",
-                                 paste(sort(unique(acc_assignment)),
-                                       collapse = "/") %>%
-                                   paste("ecological group"),
-                                 paste(word(acc_assignment, 1, 1),
-                                       "ecological group"))) %>%
+    paste(sort(unique(acc_assignment)),
+      collapse = "/"
+    ) %>%
+      paste("ecological group"),
+    paste(
+      word(acc_assignment, 1, 1),
+      "ecological group"
+    )
+  )) %>%
   ungroup() %>%
   group_by(analysis_code) %>%
   mutate(n_old = n_distinct(analysis_code_old)) %>%
   ungroup() %>%
   transmute(taxon_id, taxon, acc_assignment,
-            analysis_code = if_else(n_old > 1,
-                                    paste(analysis_code,
-                                          str_sub(analysis_code_old, -1)),
-                                    analysis_code))
+    analysis_code = if_else(n_old > 1,
+      paste(
+        analysis_code,
+        str_sub(analysis_code_old, -1)
+      ),
+      analysis_code
+    )
+  )
 
 # check codes
 sort(unique(groups_spp$analysis_code))
@@ -235,8 +262,10 @@ sort(unique(groups_spp$analysis_code))
 # select for genera in groups
 syns_genus2 <- syns_genus %>%
   filter(rank == "genus" &
-           str_detect(acc_taxon,
-                      "Agrimonia|Bidens|Crataegus|Cuscuta|Hackelia|Impatiens|Parthenocissus|Pilea|Sonchus|Taraxacum|Wolffia"))
+    str_detect(
+      acc_taxon,
+      "Agrimonia|Bidens|Crataegus|Cuscuta|Hackelia|Impatiens|Parthenocissus|Pilea|Sonchus|Taraxacum|Wolffia"
+    ))
 
 # taxa that don't match assignment
 filter(syns_genus2, taxon != acc_taxon) %>%
@@ -245,12 +274,14 @@ filter(syns_genus2, taxon != acc_taxon) %>%
 # create codes based on within-genus lumping
 # select all taxa with the genus in its accepted assignment
 groups_genus <- syns %>%
-  filter(str_detect(acc_assignment,
-                    "Agrimonia|Bidens|Crataegus|Cuscuta|Hackelia|Impatiens|Parthenocissus|Pilea|Sonchus|Taraxacum|Wolffia")) %>%
+  filter(str_detect(
+    acc_assignment,
+    "Agrimonia|Bidens|Crataegus|Cuscuta|Hackelia|Impatiens|Parthenocissus|Pilea|Sonchus|Taraxacum|Wolffia"
+  )) %>%
   distinct(taxon_id, taxon, acc_assignment) %>%
   full_join(syns_genus2 %>%
-              distinct(taxon_id, taxon, acc_taxon) %>%
-              rename(acc_assignment = acc_taxon)) %>%
+    distinct(taxon_id, taxon, acc_taxon) %>%
+    rename(acc_assignment = acc_taxon)) %>%
   mutate(analysis_code = paste(word(acc_assignment, 1, 1), "genus"))
 
 # check codes
@@ -263,8 +294,10 @@ sort(unique(groups_genus$analysis_code))
 genera_2003 <- codes_2003 %>%
   mutate(is_genus = if_else(LNAME == GENUS, LNAME, NA_character_)) %>%
   group_by(ANALCODE) %>%
-  mutate(n_genera = n_distinct(is_genus, na.rm = T),
-         n_species = n_distinct(SPECIES, na.rm = T)) %>%
+  mutate(
+    n_genera = n_distinct(is_genus, na.rm = T),
+    n_species = n_distinct(SPECIES, na.rm = T)
+  ) %>%
   ungroup() %>%
   filter(n_genera >= 1 & n_species == 1)
 
@@ -272,38 +305,42 @@ genera_2003 <- codes_2003 %>%
 genera_2005 <- codes_2005 %>%
   mutate(is_genus = if_else(LNAME == GENUS, LNAME, NA_character_)) %>%
   group_by(ANALCODE) %>%
-  mutate(n_genera = n_distinct(is_genus, na.rm = T),
-         n_species = n_distinct(SPECIES, na.rm = T)) %>%
+  mutate(
+    n_genera = n_distinct(is_genus, na.rm = T),
+    n_species = n_distinct(SPECIES, na.rm = T)
+  ) %>%
   ungroup() %>%
   filter(n_genera >= 1 & n_species == 1)
 
 # unique to 2003
 genera_unique_2003 <- genera_2003 %>%
   anti_join(genera_2005 %>%
-              distinct(LNAME)) %>%
+    distinct(LNAME)) %>%
   select(LNAME, ANALCODE) %>%
   left_join(genera_2005 %>%
-              distinct(ANALCODE) %>%
-              mutate(code_2005 = 1))
+    distinct(ANALCODE) %>%
+    mutate(code_2005 = 1))
 # none
 
 # unique to 2005
 genera_unique_2005 <- genera_2005 %>%
   anti_join(genera_2003 %>%
-              distinct(LNAME)) %>%
+    distinct(LNAME)) %>%
   select(LNAME, ANALCODE) %>%
   left_join(genera_2003 %>%
-              distinct(ANALCODE) %>%
-              mutate(code_2003 = 1))
+    distinct(ANALCODE) %>%
+    mutate(code_2003 = 1))
 # Lemna minor
 
 # format genera
 genera <- genera_2005 %>%
-  transmute(taxon = LNAME,
-            analysis_code = ANALCODE,
-            genus = word(taxon, 1, 1),
-            n_genera,
-            n_species) %>%
+  transmute(
+    taxon = LNAME,
+    analysis_code = ANALCODE,
+    genus = word(taxon, 1, 1),
+    n_genera,
+    n_species
+  ) %>%
   distinct()
 
 # check for duplicates from analysis name
@@ -315,14 +352,19 @@ get_dupes(genera, taxon)
 genera_syns <- genera %>%
   filter(genus != "Acorus") %>%
   left_join(syns %>%
-              distinct(taxon, acc_assignment)) %>%
+    distinct(taxon, acc_assignment)) %>%
   group_by(analysis_code) %>%
-  mutate(n_acc = n_distinct(acc_assignment), # include NA in count
-         acc_assignment = paste(sort(unique(acc_assignment)), # apply species code to group
-                                collapse = "/")) %>%
+  mutate(
+    n_acc = n_distinct(acc_assignment), # include NA in count
+    acc_assignment = paste(sort(unique(acc_assignment)), # apply species code to group
+      collapse = "/"
+    )
+  ) %>%
   ungroup() %>%
-  mutate(acc_genus = word(acc_assignment, 1, 1),
-         analysis_code = paste(acc_assignment, "and genus")) %>%
+  mutate(
+    acc_genus = word(acc_assignment, 1, 1),
+    analysis_code = paste(acc_assignment, "and genus")
+  ) %>%
   filter(n_acc > 1)
 
 # check for multiple accepted assignments
@@ -370,7 +412,8 @@ genera_syns2 <- genera_syns %>%
   mutate(taxa_list = paste(sort(unique(taxon)), collapse = " and ")) %>%
   ungroup() %>%
   mutate(analysis_code = if_else(str_detect(taxa_list, "\\("),
-                                 taxa_list, analysis_code))
+    taxa_list, analysis_code
+  ))
 
 # get all taxa that belong with the species' accepted assignment
 # get taxon ids for genera
@@ -378,12 +421,12 @@ genera_syns2 <- genera_syns %>%
 genera_syns3 <- genera_syns2 %>%
   distinct(acc_assignment, analysis_code) %>%
   inner_join(syns %>%
-               select(taxon_id, taxon, acc_assignment)) %>%
+    select(taxon_id, taxon, acc_assignment)) %>%
   full_join(genera_syns2 %>%
-              filter(taxon == genus | str_detect(taxon, "\\(")) %>%
-              distinct(taxon, acc_assignment, analysis_code) %>%
-              left_join(syns_genus %>%
-                          distinct(taxon_id, taxon)))
+    filter(taxon == genus | str_detect(taxon, "\\(")) %>%
+    distinct(taxon, acc_assignment, analysis_code) %>%
+    left_join(syns_genus %>%
+      distinct(taxon_id, taxon)))
 
 # check for duplicates
 get_dupes(genera_syns3, taxon_id) %>%
@@ -409,28 +452,37 @@ get_dupes(groups_fin, taxon_id) %>%
 #### releve taxa ####
 
 # fix missing IDs (from releve data)
-missing_IDs <- tibble(taxon_id_rep = c(64210, 64532),
-                      taxon = rep("Vaccinium (Blueberry)", 2))
+missing_IDs <- tibble(
+  taxon_id_rep = c(64210, 64532),
+  taxon = rep("Vaccinium (Blueberry)", 2)
+)
 
 # add taxa from releves (hard-coded groups)
-releve_taxa <- tibble(taxon_id = c(64727, 64574, 64812, 64551, 64552),
-                      taxon = c("Epilobium ciliatum/coloratum/glandulosum",
-                                "Epilobium leptophyllum/palustre/strictum",
-                                "Helianthus giganteus s.s./grosseserratus/nuttallii",
-                                "Rubus alleghenisis group",
-                                "Rubus alleghenisis group"),
-                      analysis_code = c("Epilobium ecological group 1",
-                                        "Epilobium ecological group 2",
-                                        "Helianthus ecological group",
-                                        "Rubus ecological group",
-                                        "Rubus ecological group"))
+releve_taxa <- tibble(
+  taxon_id = c(64727, 64574, 64812, 64551, 64552),
+  taxon = c(
+    "Epilobium ciliatum/coloratum/glandulosum",
+    "Epilobium leptophyllum/palustre/strictum",
+    "Helianthus giganteus s.s./grosseserratus/nuttallii",
+    "Rubus alleghenisis group",
+    "Rubus alleghenisis group"
+  ),
+  analysis_code = c(
+    "Epilobium ecological group 1",
+    "Epilobium ecological group 2",
+    "Helianthus ecological group",
+    "Rubus ecological group",
+    "Rubus ecological group"
+  )
+)
 
 # add missing taxon IDs (from releve data)
 # add releve taxa
 groups_fin2 <- groups_fin %>%
   left_join(missing_IDs) %>%
   mutate(taxon_id = if_else(is.na(taxon_id) & !is.na(taxon_id_rep),
-                            taxon_id_rep, taxon_id)) %>%
+    taxon_id_rep, taxon_id
+  )) %>%
   select(-taxon_id_rep) %>%
   full_join(releve_taxa)
 
