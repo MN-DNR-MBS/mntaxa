@@ -4,12 +4,14 @@
 \alias{taxa_mntaxa}
 \title{Create table of all taxa}
 \usage{
-taxa_mntaxa(taxonomy_levels = FALSE, sources = FALSE)
+taxa_mntaxa(taxonomy_levels = FALSE, sources = FALSE, releve = FALSE)
 }
 \arguments{
 \item{taxonomy_levels}{Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.}
 
 \item{sources}{Binary option (TRUE, FALSE) to include authorities and publications.}
+
+\item{releve}{Binary option (TRUE, FALSE) to include taxa that are specific to releves and not in MNTaxa (recommended for analyses of older releves).}
 }
 \value{
 Tibble of currently accepted taxa in MNTaxa and any additional information requested by the user.

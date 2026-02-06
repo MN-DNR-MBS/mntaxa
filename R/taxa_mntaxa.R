@@ -2,6 +2,7 @@
 #'
 #' @param taxonomy_levels Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.
 #' @param sources Binary option (TRUE, FALSE) to include authorities and publications.
+#' @param releve Binary option (TRUE, FALSE) to include taxa that are specific to releves and not in MNTaxa (recommended for analyses of older releves).
 #'
 #' @returns Tibble of currently accepted taxa in MNTaxa and any additional information requested by the user.
 #' @export
@@ -9,7 +10,8 @@
 #' @examples
 #' taxa <- taxa_mntaxa()
 taxa_mntaxa <- function(taxonomy_levels = FALSE,
-                        sources = FALSE) {
+                        sources = FALSE,
+                        releve = FALSE) {
   # check if all taxa table is missing
   missing_taxa <- !exists("taxa_raw", envir = .GlobalEnv)
 
@@ -69,7 +71,6 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
       )
     )
 
-
   # add taxonomy if selected
   if (taxonomy_levels) {
     taxa <- taxa |>
@@ -100,6 +101,24 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
           publication = title
         ) |>
         dplyr::select(publication_id, publication))
+  }
+
+  # add taxa from releves (hard-coded groups, not in MNTaxa)
+  if(releve){
+
+  # add rank if requested
+  if(taxonomy_levels){
+
+    releve_taxa <- releve_taxa |>
+      dplyr::mutate(rank = "group")
+
+  }
+
+  # add to taxa
+  taxa <- taxa |>
+    dplyr::full_join(releve_taxa |>
+                       dplyr::select(-synonymy_id))
+
   }
 
   # remove unnecessary ID columns

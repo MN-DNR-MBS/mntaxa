@@ -8,6 +8,7 @@
 #' @param common Binary option (TRUE, FALSE) to include common names.
 #' @param cvals Binary option (TRUE, FALSE) to include c-values.
 #' @param exclude Binary option (TRUE, FALSE) to include information about excluding taxa from analyses.
+#' @param releve Binary option (TRUE, FALSE) to include taxa that are specific to releves and not in MNTaxa (recommended for analyses of older releves).
 #'
 #' @returns Tibble of currently accepted taxa in MNTaxa and any additional information requested by the user.
 #' @export
@@ -16,6 +17,7 @@
 #' accepted <- accpeted_mntaxa()
 accepted_mntaxa <- function(taxonomy_levels = FALSE,
                             sources = FALSE,
+                            releve = FALSE,
                             phys = FALSE,
                             strata = FALSE,
                             origin = FALSE,
@@ -53,14 +55,30 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
   # format taxa names
   taxa <- taxa_mntaxa(
     taxonomy_levels = taxonomy_levels,
-    sources = sources
+    sources = sources,
+    releve = releve
   )
 
-  # add taxon name and optionally taxonomy levels and sources
-  dat <- syns_raw |>
-    dplyr::filter(!is.na(d_list_beg_date) & is.na(d_list_end_date)) |>
-    dplyr::distinct(taxon_id, synonymy_id) |>
-    dplyr::left_join(taxa, by = "taxon_id")
+  # add releve taxa if selected
+  if (releve) {
+
+    # add taxon name and optionally taxonomy levels and sources
+    dat <- syns_raw |>
+      dplyr::filter(!is.na(d_list_beg_date) & is.na(d_list_end_date)) |>
+      dplyr::distinct(taxon_id, synonymy_id) |>
+      dplyr::full_join(releve_taxa |>
+                         dplyr::distinct(taxon_id, synonymy_id)) |>
+      dplyr::left_join(taxa, by = "taxon_id")
+
+  } else {
+
+    # add taxon name and optionally taxonomy levels and sources
+    dat <- syns_raw |>
+      dplyr::filter(!is.na(d_list_beg_date) & is.na(d_list_end_date)) |>
+      dplyr::distinct(taxon_id, synonymy_id) |>
+      dplyr::left_join(taxa, by = "taxon_id")
+
+  }
 
   # add physcodes
   if (phys) {

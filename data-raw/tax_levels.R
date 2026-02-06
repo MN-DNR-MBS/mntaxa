@@ -8,11 +8,21 @@ library(taxizedb)
 
 # get taxonomy info
 # format taxa names
-taxa <- taxa_mntaxa(taxonomy_levels = TRUE)
+taxa <- taxa_mntaxa(taxonomy_levels = TRUE,
+                    sources = FALSE,
+                    releve = FALSE)
 
 # format accepted names
 acc <- accepted_mntaxa(
-  taxonomy_levels = TRUE
+  taxonomy_levels = TRUE,
+  sources = FALSE,
+  releve = FALSE,
+  phys = FALSE,
+  strata = FALSE,
+  origin = FALSE,
+  common = FALSE,
+  cvals = FALSE,
+  exclude = FALSE
 ) |>
   dplyr::rename_with(.fn = ~ paste("acc", .x, sep = "_")) |>
   dplyr::mutate(synonymy_id = acc_synonymy_id)
@@ -711,10 +721,34 @@ get_dupes(acc_pars4, acc_taxon_id)
 # none
 
 
+#### add in releve groups ####
+
+# get genera
+releve_pars <- releve_taxa %>%
+  transmute(acc_taxon_id = taxon_id,
+            acc_taxon = taxon,
+            acc_rank = "group",
+            acc_genus = word(taxon, 1)) %>%
+  left_join(acc_pars4 %>%
+              distinct(acc_genus, acc_family, acc_order, acc_class,
+                       acc_phylum, acc_kingdom, acc_taxonomy_source))
+
+# check for duplicates
+get_dupes(releve_pars, acc_taxon_id)
+
+# add to full
+acc_pars5 <- acc_pars4 %>%
+  full_join(releve_pars)
+
+# check
+filter(acc_pars5, acc_taxon_id %in% releve_taxa$taxon_id)
+
+
 #### save ####
 
 # rename
-tax_levels <- acc_pars4
+tax_levels <- acc_pars5 %>%
+  as.data.frame()
 
 # save data
 use_data(tax_levels, overwrite = TRUE)

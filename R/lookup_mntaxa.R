@@ -2,6 +2,7 @@
 #'
 #' @param taxonomy_levels Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.
 #' @param sources Binary option (TRUE, FALSE) to include authorities and publications.
+#' @param releve Binary option (TRUE, FALSE) to include taxa that are specific to releves and not in MNTaxa (recommended for analyses of older releves).
 #' @param phys Binary option (TRUE, FALSE) to include physiognomy.
 #' @param strata Binary option (TRUE, FALSE) to include revised physiognomy and strata codes.
 #' @param origin Binary option (TRUE, FALSE) to include origin.
@@ -25,6 +26,7 @@
 #' lookup <- lookup_mntaxa()
 lookup_mntaxa <- function(taxonomy_levels = FALSE,
                           sources = FALSE,
+                          releve = FALSE,
                           phys = FALSE,
                           strata = FALSE,
                           origin = FALSE,
@@ -61,13 +63,15 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
   # format taxa names
   taxa <- taxa_mntaxa(
     taxonomy_levels = taxonomy_levels,
-    sources = sources
+    sources = sources,
+    releve = releve
   )
 
   # format accepted names
   acc <- accepted_mntaxa(
     taxonomy_levels = taxonomy_levels,
     sources = sources,
+    releve = releve,
     phys = phys,
     strata = strata,
     origin = origin,
@@ -78,9 +82,22 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     dplyr::rename_with(.fn = ~ paste("acc", .x, sep = "_")) |>
     dplyr::mutate(synonymy_id = acc_synonymy_id)
 
-  # synonymy table
-  syns <- syns_raw |>
-    dplyr::left_join(taxa, by = "taxon_id")
+  # add accepted names for releve taxa if needed
+  if(releve){
+
+    # synonymy table
+    syns <- syns_raw |>
+      dplyr::full_join(releve_taxa |>
+                         dplyr::distinct(taxon_id, synonymy_id)) |>
+      dplyr::left_join(taxa, by = "taxon_id")
+
+  } else {
+
+    # synonymy table
+    syns <- syns_raw |>
+      dplyr::left_join(taxa, by = "taxon_id")
+
+  }
 
   # synonyms of accepted names
   acc_syns <- acc |>
@@ -174,8 +191,9 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         by = "acc_taxon_id"
       )
 
-    # stop if family is missing
-    if (sum(is.na(acc_syns_levels$acc_family)) > 0) {
+    # stop if family is missing (exclude group, don't use those)
+    if (sum(is.na(acc_syns_levels$acc_family) &
+            acc_syns_levels$rank != "group") > 0) {
       stop("Accepted taxa are missing family. Cannot replace families with species or genus.")
     }
 
@@ -279,7 +297,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
 
     # stop if genus is missing
     if (sum(is.na(acc_syns_levels$acc_genus) &
-      acc_syns_levels$rank != "family") > 0) {
+      !(acc_syns_levels$rank %in% c("family", "group"))) > 0) {
       stop("Accepted taxa are missing genera. Cannot replace  genera with species.")
     }
 
@@ -404,6 +422,13 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     if (group_analysis) {
       # save higher taxa info if needed for analysis groups
       acc_lookup_higher <- acc_lookup
+    }
+
+    if(releve){
+
+      # keep releve taxa
+      higher_include <- c(higher_include, releve_taxa$taxon)
+
     }
 
     # drop family and genera that have multiple species in MNTaxa
@@ -555,7 +580,6 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         dplyr::bind_rows(acodes_higher)
     }
 
-    #### start here ####
     # combine all analysis codes
     # analysis code taxa with no accepted taxa (a few hard-coded releve groups)
     acodes <- acodes_assigned |>

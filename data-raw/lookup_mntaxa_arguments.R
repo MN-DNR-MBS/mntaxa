@@ -4,9 +4,10 @@
 load_all()
 
 # arguments
-taxonomy_levels = FALSE
+taxonomy_levels = T
 sources = FALSE
 phys = FALSE
+releve = T
 strata = FALSE
 origin = FALSE
 common = FALSE
@@ -31,3 +32,5 @@ group_accepted = T
 group_analysis = T
 
 
+dplyr::filter(acc_lookup, taxon_id %in% releve_taxa$taxon_id) |>
+  data.frame()

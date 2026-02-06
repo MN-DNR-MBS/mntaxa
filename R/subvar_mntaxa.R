@@ -28,6 +28,7 @@ subvar_mntaxa <- function(acc = NULL,
     acc <- accepted_mntaxa(
       taxonomy_levels = TRUE,
       sources = sources,
+      releve = FALSE, # no subspecies/varieties hard-coded in releves
       phys = phys,
       strata = strata,
       origin = origin,

@@ -7,6 +7,7 @@
 lookup_mntaxa(
   taxonomy_levels = FALSE,
   sources = FALSE,
+  releve = FALSE,
   phys = FALSE,
   strata = FALSE,
   origin = FALSE,
@@ -29,6 +30,8 @@ lookup_mntaxa(
 \item{taxonomy_levels}{Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.}
 
 \item{sources}{Binary option (TRUE, FALSE) to include authorities and publications.}
+
+\item{releve}{Binary option (TRUE, FALSE) to include taxa that are specific to releves and not in MNTaxa (recommended for analyses of older releves).}
 
 \item{phys}{Binary option (TRUE, FALSE) to include physiognomy.}
 

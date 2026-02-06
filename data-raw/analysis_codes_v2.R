@@ -26,6 +26,7 @@ syns <- lookup_mntaxa(
   taxonomy_levels = FALSE,
   sources = FALSE,
   phys = FALSE,
+  releve = FALSE,
   strata = FALSE,
   origin = FALSE,
   common = FALSE,
@@ -52,6 +53,7 @@ syns <- lookup_mntaxa(
 syns_genus <- lookup_mntaxa(
   taxonomy_levels = FALSE,
   sources = FALSE,
+  releve = FALSE,
   phys = FALSE,
   strata = FALSE,
   origin = FALSE,
@@ -78,7 +80,8 @@ syns_genus <- lookup_mntaxa(
 )
 taxa <- taxa_mntaxa(
   taxonomy_levels = FALSE,
-  sources = FALSE
+  sources = FALSE,
+  releve = FALSE
 )
 
 
@@ -388,7 +391,7 @@ filter(genera_syns, taxon %in% groups_genus$taxon) # yes
 
 # look at Megalodonta
 filter(syns_genus, taxon == "Megalodonta") %>%
-  distinct(taxon, acc_assignment) # name has changed
+  distinct(taxon, acc_taxon) # name has changed
 
 # genus changes
 filter(genera_syns, genus != acc_genus)
@@ -451,40 +454,22 @@ get_dupes(groups_fin, taxon_id) %>%
 
 #### releve taxa ####
 
-# fix missing IDs (from releve data)
-missing_IDs <- tibble(
-  taxon_id_rep = c(64210, 64532),
-  taxon = rep("Vaccinium (Blueberry)", 2)
-)
+# add analysis code
+releve_code <- releve_taxa %>%
+  select(taxon_id, taxon) %>%
+  arrange(taxon) %>%
+  mutate(acc_assignment = taxon,
+         analysis_code = c("Epilobium ecological group 1",
+                           "Epilobium ecological group 2",
+                           "Helianthus ecological group",
+                           "Rubus ecological group",
+                           "Rubus ecological group",
+                           "Vaccinium (Blueberry) and Vaccinium angustifolium",
+                           "Vaccinium (Blueberry) and Vaccinium angustifolium"))
 
-# add taxa from releves (hard-coded groups)
-releve_taxa <- tibble(
-  taxon_id = c(64727, 64574, 64812, 64551, 64552),
-  taxon = c(
-    "Epilobium ciliatum/coloratum/glandulosum",
-    "Epilobium leptophyllum/palustre/strictum",
-    "Helianthus giganteus s.s./grosseserratus/nuttallii",
-    "Rubus alleghenisis group",
-    "Rubus alleghenisis group"
-  ),
-  analysis_code = c(
-    "Epilobium ecological group 1",
-    "Epilobium ecological group 2",
-    "Helianthus ecological group",
-    "Rubus ecological group",
-    "Rubus ecological group"
-  )
-)
-
-# add missing taxon IDs (from releve data)
 # add releve taxa
 groups_fin2 <- groups_fin %>%
-  left_join(missing_IDs) %>%
-  mutate(taxon_id = if_else(is.na(taxon_id) & !is.na(taxon_id_rep),
-    taxon_id_rep, taxon_id
-  )) %>%
-  select(-taxon_id_rep) %>%
-  full_join(releve_taxa)
+  full_join(releve_code)
 
 # check taxa
 get_dupes(groups_fin2, taxon_id) %>%
@@ -498,7 +483,8 @@ filter(groups_fin2, is.na(acc_assignment))
 #### save ####
 
 # rename
-analysis_codes_v2 <- groups_fin2
+analysis_codes_v2 <- groups_fin2 %>%
+  as.data.frame()
 
 # save data
 use_data(analysis_codes_v2, overwrite = TRUE)

@@ -31,6 +31,7 @@ growform_codes <- read_csv("../npc-releve/data/Releve spp growform codes names_D
 lookup <- lookup_mntaxa(
   taxonomy_levels = FALSE,
   sources = FALSE,
+  releve = FALSE,
   phys = FALSE,
   strata = FALSE,
   origin = FALSE,
@@ -60,6 +61,7 @@ lookup <- lookup_mntaxa(
 acc_phys <- accepted_mntaxa(
   taxonomy_levels = FALSE,
   sources = FALSE,
+  releve = FALSE,
   phys = TRUE,
   phys_strata = FALSE,
   origin = FALSE,
@@ -500,8 +502,42 @@ codes_comb5 <- codes_comb4 %>%
   rename(acc_taxon = dlist_taxon) %>%
   distinct()
 
+
+#### add in releve taxa ####
+
+# genera of releve taxa
+releve_genera <- paste(unique(word(releve_taxa$taxon, 1)), collapse = "|")
+
+# codes associated with releve taxa
+codes_comb5 %>%
+  filter(str_detect(acc_taxon, releve_genera)) %>%
+  mutate(genus = word(acc_taxon, 1)) %>%
+  distinct(genus, stratacode, physcode) %>%
+  arrange(genus)
+
+filter(codes_comb5, acc_taxon == "Rubus allegheniensis") # D, shrub
+filter(codes_old, LNAME == "Vaccinium (Blueberry)") # D, shrub
+# all others H
+
+# format releve taxa
+releve_codes <- releve_taxa %>%
+  distinct(acc_taxon = taxon) %>%
+  arrange(acc_taxon) %>%
+  mutate(stratacode = c(rep(NA_character_, 3), rep("shrub", 2)),
+         physcode = c("H", "H", "H", "D", "D"))
+
+# add
+codes_comb6 <- codes_comb5 %>%
+  full_join(releve_codes)
+
+# check
+filter(codes_comb6, acc_taxon %in% releve_taxa$taxon)
+
+
+#### save ####
+
 # rename and make dataframe
-phys_strata <- codes_comb5 %>%
+phys_strata <- codes_comb6 %>%
   as.data.frame()
 
 # save data
