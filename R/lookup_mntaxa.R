@@ -475,7 +475,11 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::summarize(
         dplyr::across(
           c(starts_with("acc_"), synonymy_id),
-          ~ paste(sort(unique(.x)), collapse = "/")
+          ~ {
+            non_na <- na.omit(.x)
+            if(length(non_na) == 0) NA_character_
+            else paste(sort(unique(non_na)), collapse = "/")
+          }
         ),
         .groups = "drop"
       ) |>
@@ -513,7 +517,11 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::group_by(acc_group) |>
       dplyr::mutate(dplyr::across(
         c(starts_with("acc_"), synonymy_id),
-        ~ paste(sort(unique(.x)), collapse = "/")
+        ~ {
+          non_na <- na.omit(.x)
+          if(length(non_na) == 0) NA_character_
+          else paste(sort(unique(non_na)), collapse = "/")
+        }
       )) |>
       dplyr::ungroup() |>
       dplyr::mutate(acc_assignment = dplyr::if_else(
@@ -559,7 +567,11 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         dplyr::group_by(taxon_id) |>
         dplyr::mutate(dplyr::across(
           c(starts_with("acc_"), synonymy_id),
-          ~ paste(sort(unique(.x)), collapse = "/")
+          ~ {
+            non_na <- na.omit(.x)
+            if(length(non_na) == 0) NA_character_
+            else paste(sort(unique(non_na)), collapse = "/")
+          }
         )) |>
         dplyr::ungroup() |>
         dplyr::mutate(acc_assignment = dplyr::if_else(
