@@ -475,20 +475,24 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     if(sources == TRUE) {
 
       acc_lookup <- acc_lookup |>
-        dplyr::mutate(acc_full_name = trimws(paste(
+        dplyr::mutate(
+          acc_full_name = trimws(paste(
           dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
           dplyr::if_else(is.na(acc_author), "", acc_author),
           dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
-        ))) |>
+          ))
+        ) |>
         dplyr::select(-c(acc_author, acc_ss_sl))
 
     } else {
 
       acc_lookup <- acc_lookup |>
-        dplyr::mutate(acc_full_name = trimws(paste(
-          dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
-          dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
-        ))) |>
+        dplyr::mutate(
+          acc_full_name = trimws(paste(
+            dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
+            dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
+          ))
+          ) |>
         dplyr::select(-acc_ss_sl)
 
     }
