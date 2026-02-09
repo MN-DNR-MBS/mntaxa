@@ -473,52 +473,56 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
           !(taxon == "Solanum ptycanthum" &
               acc_taxon == "Solanum nigrum"))
 
-    # create full name column
-    if(sources == TRUE) {
+    # group together for exporting clean table
+    if(!group_accepted & !group_analysis){
 
-      acc_lookup <- acc_lookup |>
-        dplyr::mutate(
-          acc_full_name = trimws(paste(
-          dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
-          dplyr::if_else(is.na(acc_author), "", acc_author),
-          dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
-          ))
-        ) |>
-        dplyr::select(-c(acc_author, acc_ss_sl))
+      # create full name column
+      if(sources == TRUE) {
 
-    } else {
-
-      acc_lookup <- acc_lookup |>
-        dplyr::mutate(
-          acc_full_name = trimws(paste(
-            dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
-            dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
-          ))
+        acc_lookup <- acc_lookup |>
+          dplyr::mutate(
+            acc_full_name = trimws(paste(
+              dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
+              dplyr::if_else(is.na(acc_author), "", acc_author),
+              dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
+            ))
           ) |>
-        dplyr::select(-acc_ss_sl)
+          dplyr::select(-c(acc_author, acc_ss_sl))
 
+      } else {
+
+        acc_lookup <- acc_lookup |>
+          dplyr::mutate(
+            acc_full_name = trimws(paste(
+              dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
+              dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
+            ))
+          ) |>
+          dplyr::select(-acc_ss_sl)
+
+      }
+
+      # for taxa with multiple matches, summarize those
+      acc_lookup <- acc_lookup |>
+        dplyr::group_by(taxon, hybrid, rank) |>
+        dplyr::summarize(
+          dplyr::across(
+            c(starts_with("acc_"), synonymy_id),
+            ~ {
+              non_na <- na.omit(.x)
+              if(length(non_na) == 0) NA_character_
+              else paste(sort(unique(non_na)), collapse = "/")
+            }
+          ),
+          .groups = "drop"
+        ) |>
+        dplyr::mutate(acc_assignment = dplyr::if_else(
+          stringr::str_detect(acc_taxon, "/"),
+          purrr::map_chr(stringr::str_split(acc_taxon, "/"), combine_names),
+          acc_taxon
+        )) |>
+        dplyr::select(-acc_taxon)
     }
-
-    # for taxa with multiple matches, summarize those
-    acc_lookup <- acc_lookup |>
-      dplyr::group_by(taxon, hybrid, rank) |>
-      dplyr::summarize(
-        dplyr::across(
-          c(starts_with("acc_"), synonymy_id),
-          ~ {
-            non_na <- na.omit(.x)
-            if(length(non_na) == 0) NA_character_
-            else paste(sort(unique(non_na)), collapse = "/")
-          }
-        ),
-        .groups = "drop"
-      ) |>
-      dplyr::mutate(acc_assignment = dplyr::if_else(
-        stringr::str_detect(acc_taxon, "/"),
-        purrr::map_chr(stringr::str_split(acc_taxon, "/"), combine_names),
-        acc_taxon
-      )) |>
-      dplyr::select(-acc_taxon)
   }
 
   if (group_accepted | group_analysis) {
