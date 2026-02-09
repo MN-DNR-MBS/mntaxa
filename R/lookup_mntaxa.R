@@ -447,7 +447,6 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     # if a taxon is accepted, make it's only accepted taxon itself
     # if its parent is accepted and a match, use parent
     # manual corrections for the most likely taxon someone would be recording
-    # for taxa with multiple matches, summarize those
     acc_lookup <- acc_lookup |>
       dplyr::group_by(taxon) |>
       dplyr::mutate(
@@ -470,7 +469,32 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         !(taxon == "Chamerion angustifolium subsp. angustifolium" &
           acc_taxon == "Eriophorum angustifolium") &
         !(taxon == "Quercus x schuettei" &
-          acc_taxon == "Quercus x hillii")) |>
+          acc_taxon == "Quercus x hillii"))
+
+    # create full name column
+    if(sources == TRUE) {
+
+      acc_lookup <- acc_lookup |>
+        dplyr::mutate(acc_full_name = trimws(paste(
+          dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
+          dplyr::if_else(is.na(acc_author), "", acc_author),
+          dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
+        ))) |>
+        dplyr::select(-c(acc_author, acc_ss_sl))
+
+    } else {
+
+      acc_lookup <- acc_lookup |>
+        dplyr::mutate(acc_full_name = trimws(paste(
+          dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
+          dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
+        ))) |>
+        dplyr::select(-acc_ss_sl)
+
+    }
+
+    # for taxa with multiple matches, summarize those
+    acc_lookup <- acc_lookup |>
       dplyr::group_by(taxon, hybrid, rank) |>
       dplyr::summarize(
         dplyr::across(
@@ -506,14 +530,38 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     acc_comps <- igraph::components(acc_graph)
 
     # add groups from components to synonymy
-    # summarize by acc_group
-    # name by concatenating names
     acc_lookup <- data.frame(
       taxon_id = names(acc_comps$membership) |>
         as.numeric(),
       acc_group = acc_comps$membership
     ) |>
-      dplyr::left_join(acc_lookup, by = "taxon_id") |>
+      dplyr::left_join(acc_lookup, by = "taxon_id")
+
+    # create full name column
+    if(sources == TRUE) {
+
+      acc_lookup <- acc_lookup |>
+        dplyr::mutate(acc_full_name = trimws(paste(
+          dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
+          dplyr::if_else(is.na(acc_author), "", acc_author),
+          dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
+        ))) |>
+        dplyr::select(-c(acc_author, acc_ss_sl))
+
+    } else {
+
+      acc_lookup <- acc_lookup |>
+        dplyr::mutate(acc_full_name = trimws(paste(
+          dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
+          dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
+        ))) |>
+        dplyr::select(-acc_ss_sl)
+
+    }
+
+    # summarize by acc_group
+    # name by concatenating names
+    acc_lookup <- acc_lookup |>
       dplyr::group_by(acc_group) |>
       dplyr::mutate(dplyr::across(
         c(starts_with("acc_"), synonymy_id),
@@ -552,7 +600,6 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     if (drop_higher) {
 
       # get acc info for dropped higher
-      # collapse if multiple acc_taxon for a given taxon_id
       acodes_higher <- analysis_codes_v2 |>
         dplyr::select(taxon_id, analysis_code) |>
         dplyr::inner_join(
@@ -563,7 +610,32 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
               by = "taxon_id"
             ),
           by = "taxon_id"
-        ) |>
+        )
+
+      # create full name column
+      if(sources == TRUE) {
+
+        acodes_higher <- acodes_higher |>
+          dplyr::mutate(acc_full_name = trimws(paste(
+            dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
+            dplyr::if_else(is.na(acc_author), "", acc_author),
+            dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
+          ))) |>
+          dplyr::select(-c(acc_author, acc_ss_sl))
+
+      } else {
+
+        acodes_higher <- acodes_higher |>
+          dplyr::mutate(acc_full_name = trimws(paste(
+            dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
+            dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
+          ))) |>
+          dplyr::select(-acc_ss_sl)
+
+      }
+
+      # collapse if multiple acc_taxon for a given taxon_id
+      acodes_higher <- acodes_higher |>
         dplyr::group_by(taxon_id) |>
         dplyr::mutate(dplyr::across(
           c(starts_with("acc_"), synonymy_id),

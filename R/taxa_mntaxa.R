@@ -95,6 +95,8 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::left_join(auth_raw |>
         dplyr::rename(author_id = id) |>
         dplyr::select(author_id, author)) |>
+      dplyr::mutate(author = dplyr::if_else(
+        author == "", NA_character_, author)) |>
       dplyr::left_join(pubs_raw |>
         dplyr::rename(
           publication_id = id,
