@@ -4,7 +4,7 @@
 load_all()
 
 # arguments
-taxonomy_levels = T
+taxonomy_levels = F
 sources = FALSE
 phys = FALSE
 releve = T
@@ -27,10 +27,15 @@ higher_include = c(
   "Tolypella"
 )
 excluded_duplicates = T
-clean_duplicates = FALSE
+clean_duplicates = T
 group_accepted = T
 group_analysis = T
 
 
-dplyr::filter(acc_lookup, taxon_id %in% releve_taxa$taxon_id) |>
+dplyr::filter(acc_lookup, taxon_id %in% c(24137, 13822, 13514, NA_real_)) |>
   data.frame()
+dplyr::filter(acc_lookup_higher, taxon_id %in% c(24137, 13822, 13514, NA_real_)) |>
+  data.frame()
+dplyr::filter(acodes, taxon_id %in% c(24137, 13822, 13514, NA_real_)) |>
+  data.frame()
+
