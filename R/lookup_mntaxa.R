@@ -418,34 +418,9 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::anti_join(acc_dups_exclude)
   }
 
-  if (drop_higher) {
-    if (group_analysis) {
-      # save higher taxa info if needed for analysis groups
-      acc_lookup_higher <- acc_lookup
-    }
-
-    if(releve){
-
-      # keep releve taxa
-      higher_include <- c(higher_include, releve_taxa$taxon)
-
-    }
-
-    # drop family and genera that have multiple species in MNTaxa
-    # add parent
-    # drop offspring if their parent species is an assignment and matches rank
-    # of taxon
-    acc_lookup <- acc_lookup |>
-      dplyr::filter(acc_rank %in% c(
-        "species", "subspecies", "variety",
-        "subspecies variety"
-      ) |
-        acc_taxon %in% higher_include)
-  }
-
   if (clean_duplicates) {
     # if a taxon is accepted, make it's only accepted taxon itself
-    # if its parent is accepted and a match, use parent
+    # if its species-level parent is accepted and a match, use parent
     # manual corrections for the most likely taxon someone would be recording
     acc_lookup <- acc_lookup |>
       dplyr::group_by(taxon) |>
@@ -524,6 +499,31 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         )) |>
         dplyr::select(-acc_taxon)
     }
+  }
+
+  if (drop_higher) {
+    if (group_analysis) {
+      # save higher taxa info if needed for analysis groups
+      acc_lookup_higher <- acc_lookup
+    }
+
+    if(releve){
+
+      # keep releve taxa
+      higher_include <- c(higher_include, releve_taxa$taxon)
+
+    }
+
+    # drop family and genera that have multiple species in MNTaxa
+    # add parent
+    # drop offspring if their parent species is an assignment and matches rank
+    # of taxon
+    acc_lookup <- acc_lookup |>
+      dplyr::filter(acc_rank %in% c(
+        "species", "subspecies", "variety",
+        "subspecies variety"
+      ) |
+        acc_taxon %in% higher_include)
   }
 
   if (group_accepted | group_analysis) {
