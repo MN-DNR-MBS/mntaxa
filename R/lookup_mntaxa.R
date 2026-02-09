@@ -443,7 +443,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         acc_taxon %in% higher_include)
   }
 
-  if (clean_duplicates & !group_accepted & !group_analysis) {
+  if (clean_duplicates) {
     # if a taxon is accepted, make it's only accepted taxon itself
     # if its parent is accepted and a match, use parent
     # manual corrections for the most likely taxon someone would be recording
