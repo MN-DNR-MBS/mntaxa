@@ -469,7 +469,9 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         !(taxon == "Chamerion angustifolium subsp. angustifolium" &
           acc_taxon == "Eriophorum angustifolium") &
         !(taxon == "Quercus x schuettei" &
-          acc_taxon == "Quercus x hillii"))
+          acc_taxon == "Quercus x hillii") &
+          !(taxon == "Solanum ptycanthum" &
+              analysis_group == "Solanum nigrum"))
 
     # create full name column
     if(sources == TRUE) {
