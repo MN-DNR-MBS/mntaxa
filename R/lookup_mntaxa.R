@@ -471,7 +471,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         !(taxon == "Quercus x schuettei" &
           acc_taxon == "Quercus x hillii") &
           !(taxon == "Solanum ptycanthum" &
-              analysis_group == "Solanum nigrum"))
+              acc_taxon == "Solanum nigrum"))
 
     # create full name column
     if(sources == TRUE) {

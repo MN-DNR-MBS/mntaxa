@@ -63,7 +63,7 @@ acc_phys <- accepted_mntaxa(
   sources = FALSE,
   releve = FALSE,
   phys = TRUE,
-  phys_strata = FALSE,
+  strata = FALSE,
   origin = FALSE,
   common = FALSE,
   cvals = FALSE,
