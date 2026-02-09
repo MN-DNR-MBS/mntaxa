@@ -471,7 +471,8 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         !(taxon == "Quercus x schuettei" &
           acc_taxon == "Quercus x hillii") &
           !(taxon == "Solanum ptycanthum" &
-              acc_taxon == "Solanum nigrum"))
+              acc_taxon == "Solanum nigrum")) |>
+      dplyr::select(-c(in_acc, species_in_acc))
 
     # group together for exporting clean table
     if(!group_accepted & !group_analysis){
