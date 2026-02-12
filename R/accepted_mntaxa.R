@@ -24,33 +24,6 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
                             common = FALSE,
                             cvals = FALSE,
                             exclude = FALSE) {
-  # check if accepted and all taxa tables are missing
-  missing_synonymies <- !exists("syns_raw", envir = .GlobalEnv)
-  missing_taxa <- !exists("taxa_raw", envir = .GlobalEnv)
-
-  # check each optional set individually
-  missing_taxonomy <- taxonomy_levels && !all(c("pars_raw", "rank_raw") %in% ls(envir = .GlobalEnv))
-  missing_sources <- sources && !all(c("auth_raw", "pubs_raw") %in% ls(envir = .GlobalEnv))
-  missing_phys <- phys && !all(c("phys_codes_raw", "syn_phys_raw") %in% ls(envir = .GlobalEnv))
-  missing_origin <- origin && !all(c("origin_codes_raw", "syn_or_raw") %in% ls(envir = .GlobalEnv))
-  missing_common <- common && !exists("syn_comm_raw", envir = .GlobalEnv)
-  missing_cvals <- cvals && !exists("syn_cvals_raw", envir = .GlobalEnv)
-  missing_exclude <- exclude && !all(c("syn_exclude_raw", "exclude_codes_raw") %in% ls(envir = .GlobalEnv))
-
-  # load only if something is missing
-  if (missing_synonymies || missing_taxa || missing_taxonomy || missing_sources || missing_phys || missing_origin || missing_common || missing_cvals || missing_exclude) {
-    load_mntaxa(
-      synonymies = missing_synonymies,
-      all_taxa = missing_taxa,
-      taxonomy_levels = missing_taxonomy,
-      sources = missing_sources,
-      phys = missing_phys,
-      origin = missing_origin,
-      common = missing_common,
-      cvals = missing_cvals,
-      exclude = missing_exclude
-    )
-  }
 
   # format taxa names
   taxa <- taxa_mntaxa(

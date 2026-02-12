@@ -12,27 +12,6 @@
 taxa_mntaxa <- function(taxonomy_levels = FALSE,
                         sources = FALSE,
                         releve = FALSE) {
-  # check if all taxa table is missing
-  missing_taxa <- !exists("taxa_raw", envir = .GlobalEnv)
-
-  # check each optional set individually
-  missing_taxonomy <- taxonomy_levels && !all(c("pars_raw", "rank_raw") %in% ls(envir = .GlobalEnv))
-  missing_sources <- sources && !all(c("auth_raw", "pubs_raw") %in% ls(envir = .GlobalEnv))
-
-  # load only if something is missing
-  if (missing_taxa || missing_taxonomy || missing_sources) {
-    load_mntaxa(
-      synonymies = FALSE,
-      all_taxa = missing_taxa,
-      taxonomy_levels = missing_taxonomy,
-      sources = missing_sources,
-      phys = FALSE,
-      origin = FALSE,
-      common = FALSE,
-      cvals = FALSE,
-      exclude = FALSE
-    )
-  }
 
   # save hybrid name with symbol and without
   # remove \t at end of one name
