@@ -6,9 +6,9 @@ load_all()
 # arguments
 taxonomy_levels = F
 sources = FALSE
-phys = FALSE
 releve = T
-strata = FALSE
+phys = FALSE
+strata = T
 origin = FALSE
 common = FALSE
 cvals = FALSE
@@ -27,15 +27,6 @@ higher_include = c(
   "Tolypella"
 )
 excluded_duplicates = T
-clean_duplicates = T
+clean_duplicates = F
 group_accepted = T
 group_analysis = T
-
-
-dplyr::filter(acc_lookup, taxon_id %in% c(24137, 13822, 13514, NA_real_)) |>
-  data.frame()
-dplyr::filter(acc_lookup_higher, taxon_id %in% c(24137, 13822, 13514, NA_real_)) |>
-  data.frame()
-dplyr::filter(acodes, taxon_id %in% c(24137, 13822, 13514, NA_real_)) |>
-  data.frame()
-

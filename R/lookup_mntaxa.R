@@ -534,17 +534,13 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     acc_edges <- acc_lookup |>
       dplyr::distinct(taxon_id, acc_taxon_id)
 
-    # build a graph of all taxon_id ↔ acc_id relationships
-    acc_graph <- igraph::graph_from_data_frame(acc_edges, directed = FALSE)
-
-    # create groups using all IDs
-    acc_comps <- igraph::components(acc_graph)
+    # find connected components
+    membership <- connected_components(acc_edges)
 
     # add groups from components to synonymy
     acc_lookup <- data.frame(
-      taxon_id = names(acc_comps$membership) |>
-        as.numeric(),
-      acc_group = acc_comps$membership
+      taxon_id = as.numeric(names(membership)),
+      acc_group = unname(membership)
     ) |>
       dplyr::left_join(acc_lookup, by = "taxon_id")
 

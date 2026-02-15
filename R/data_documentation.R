@@ -17,6 +17,7 @@
 #' \describe{
 #'   \item{id}{Integer. Primary key.}
 #'   \item{taxon}{Character. Scientific name of the taxon.}
+#'   \item{ss_sl}{Character. Qualifier to scientific name.}
 #'   \item{is_hybrid}{Integer. Binary indicator of whether the taxon is a hybrid (1) or not (0).}
 #'   \item{hybrid_parents}{Character. Names of parent taxa for hybrids. \code{NA} for non-hybrids.}
 #'   \item{rank_id}{Integer. Foreign key linking to \code{rank_raw}.}

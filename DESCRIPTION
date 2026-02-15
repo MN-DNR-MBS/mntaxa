@@ -10,12 +10,12 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
     dplyr,
-    igraph,
     janitor,
     purrr,
-    RODBC,
     stringr,
     tibble
 LazyData: true
 Depends: 
     R (>= 3.5)
+Suggests:
+  RODBC

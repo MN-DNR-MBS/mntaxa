@@ -27,6 +27,7 @@ taxa_raw <- taxa_raw |>
   dplyr::select(
     id,
     taxon,
+    ss_sl,
     is_hybrid,
     hybrid_parents,
     rank_id,
