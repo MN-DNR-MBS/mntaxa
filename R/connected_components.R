@@ -2,7 +2,6 @@
 # Returns a named integer vector of group membership, keyed by node ID,
 # equivalent to igraph::components()$membership.
 connected_components <- function(edges) {
-
   # collect all unique nodes from both columns as characters
   nodes <- as.character(unique(c(edges[[1]], edges[[2]])))
 
@@ -14,7 +13,7 @@ connected_components <- function(edges) {
   # find root of a node with path compression
   find <- function(x) {
     while (!identical(parent[[x]], x)) {
-      parent[[x]] <- parent[[parent[[x]]]]  # path compression
+      parent[[x]] <- parent[[parent[[x]]]] # path compression
       x <- parent[[x]]
     }
     x

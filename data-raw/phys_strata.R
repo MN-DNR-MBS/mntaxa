@@ -523,8 +523,10 @@ filter(codes_old, LNAME == "Vaccinium (Blueberry)") # D, shrub
 releve_codes <- releve_taxa %>%
   distinct(acc_taxon = taxon) %>%
   arrange(acc_taxon) %>%
-  mutate(stratacode = c(rep(NA_character_, 3), rep("shrub", 2)),
-         physcode = c("H", "H", "H", "D", "D"))
+  mutate(
+    stratacode = c(rep(NA_character_, 3), rep("shrub", 2)),
+    physcode = c("H", "H", "H", "D", "D")
+  )
 
 # add
 codes_comb6 <- codes_comb5 %>%

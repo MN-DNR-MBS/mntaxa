@@ -83,20 +83,16 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
     dplyr::mutate(synonymy_id = acc_synonymy_id)
 
   # add accepted names for releve taxa if needed
-  if(releve){
-
+  if (releve) {
     # synonymy table
     syns <- syns_raw |>
       dplyr::full_join(releve_taxa |>
-                         dplyr::distinct(taxon_id, synonymy_id)) |>
+        dplyr::distinct(taxon_id, synonymy_id)) |>
       dplyr::left_join(taxa, by = "taxon_id")
-
   } else {
-
     # synonymy table
     syns <- syns_raw |>
       dplyr::left_join(taxa, by = "taxon_id")
-
   }
 
   # synonyms of accepted names
@@ -193,7 +189,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
 
     # stop if family is missing (exclude group, don't use those)
     if (sum(is.na(acc_syns_levels$acc_family) &
-            acc_syns_levels$rank != "group") > 0) {
+      acc_syns_levels$rank != "group") > 0) {
       stop("Accepted taxa are missing family. Cannot replace families with species or genus.")
     }
 
@@ -445,16 +441,14 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
           acc_taxon == "Eriophorum angustifolium") &
         !(taxon == "Quercus x schuettei" &
           acc_taxon == "Quercus x hillii") &
-          !(taxon == "Solanum ptycanthum" &
-              acc_taxon == "Solanum nigrum")) |>
+        !(taxon == "Solanum ptycanthum" &
+          acc_taxon == "Solanum nigrum")) |>
       dplyr::select(-c(in_acc, species_in_acc))
 
     # group together for exporting clean table
-    if(!group_accepted & !group_analysis){
-
+    if (!group_accepted & !group_analysis) {
       # create full name column
-      if(sources == TRUE) {
-
+      if (sources == TRUE) {
         acc_lookup <- acc_lookup |>
           dplyr::mutate(
             acc_full_name = trimws(paste(
@@ -464,9 +458,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
             ))
           ) |>
           dplyr::select(-c(acc_author, acc_ss_sl))
-
       } else {
-
         acc_lookup <- acc_lookup |>
           dplyr::mutate(
             acc_full_name = trimws(paste(
@@ -475,7 +467,6 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
             ))
           ) |>
           dplyr::select(-acc_ss_sl)
-
       }
 
       # for taxa with multiple matches, summarize those
@@ -486,8 +477,11 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
             c(starts_with("acc_"), synonymy_id),
             ~ {
               non_na <- na.omit(.x)
-              if(length(non_na) == 0) NA_character_
-              else paste(sort(unique(non_na)), collapse = "/")
+              if (length(non_na) == 0) {
+                NA_character_
+              } else {
+                paste(sort(unique(non_na)), collapse = "/")
+              }
             }
           ),
           .groups = "drop"
@@ -507,11 +501,9 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       acc_lookup_higher <- acc_lookup
     }
 
-    if(releve){
-
+    if (releve) {
       # keep releve taxa
       higher_include <- c(higher_include, releve_taxa$taxon)
-
     }
 
     # drop family and genera that have multiple species in MNTaxa
@@ -545,8 +537,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
       dplyr::left_join(acc_lookup, by = "taxon_id")
 
     # create full name column
-    if(sources == TRUE) {
-
+    if (sources == TRUE) {
       acc_lookup <- acc_lookup |>
         dplyr::mutate(acc_full_name = trimws(paste(
           dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
@@ -554,16 +545,13 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
           dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
         ))) |>
         dplyr::select(-c(acc_author, acc_ss_sl))
-
     } else {
-
       acc_lookup <- acc_lookup |>
         dplyr::mutate(acc_full_name = trimws(paste(
           dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
           dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
         ))) |>
         dplyr::select(-acc_ss_sl)
-
     }
 
     # summarize by acc_group
@@ -574,8 +562,11 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         c(starts_with("acc_"), synonymy_id),
         ~ {
           non_na <- na.omit(.x)
-          if(length(non_na) == 0) NA_character_
-          else paste(sort(unique(non_na)), collapse = "/")
+          if (length(non_na) == 0) {
+            NA_character_
+          } else {
+            paste(sort(unique(non_na)), collapse = "/")
+          }
         }
       )) |>
       dplyr::ungroup() |>
@@ -605,7 +596,6 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
 
     # if higher were dropped, add back in if they have an analysis group
     if (drop_higher) {
-
       # get acc info for dropped higher
       acodes_higher <- analysis_codes_v2 |>
         dplyr::select(taxon_id, analysis_code) |>
@@ -620,8 +610,7 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
         )
 
       # create full name column
-      if(sources == TRUE) {
-
+      if (sources == TRUE) {
         acodes_higher <- acodes_higher |>
           dplyr::mutate(acc_full_name = trimws(paste(
             dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
@@ -629,16 +618,13 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
             dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
           ))) |>
           dplyr::select(-c(acc_author, acc_ss_sl))
-
       } else {
-
         acodes_higher <- acodes_higher |>
           dplyr::mutate(acc_full_name = trimws(paste(
             dplyr::if_else(is.na(acc_taxon), "", acc_taxon),
             dplyr::if_else(is.na(acc_ss_sl), "", acc_ss_sl)
           ))) |>
           dplyr::select(-acc_ss_sl)
-
       }
 
       # collapse if multiple acc_taxon for a given taxon_id
@@ -648,8 +634,11 @@ lookup_mntaxa <- function(taxonomy_levels = FALSE,
           c(starts_with("acc_"), synonymy_id),
           ~ {
             non_na <- na.omit(.x)
-            if(length(non_na) == 0) NA_character_
-            else paste(sort(unique(non_na)), collapse = "/")
+            if (length(non_na) == 0) {
+              NA_character_
+            } else {
+              paste(sort(unique(non_na)), collapse = "/")
+            }
           }
         )) |>
         dplyr::ungroup() |>

@@ -4,20 +4,20 @@
 load_all()
 
 # arguments
-taxonomy_levels = F
-sources = FALSE
-releve = T
-phys = FALSE
-strata = T
-origin = FALSE
-common = FALSE
-cvals = FALSE
-exclude = FALSE
-replace_sub_var = T
-replace_family = T
-replace_genus = T
-drop_higher = T
-higher_include = c(
+taxonomy_levels <- F
+sources <- FALSE
+releve <- T
+phys <- FALSE
+strata <- T
+origin <- FALSE
+common <- FALSE
+cvals <- FALSE
+exclude <- FALSE
+replace_sub_var <- T
+replace_family <- T
+replace_genus <- T
+drop_higher <- T
+higher_include <- c(
   "Belonia",
   "Chara",
   "Lychnothamnus",
@@ -26,7 +26,7 @@ higher_include = c(
   "Spirogyra",
   "Tolypella"
 )
-excluded_duplicates = T
-clean_duplicates = F
-group_accepted = T
-group_analysis = T
+excluded_duplicates <- T
+clean_duplicates <- F
+group_accepted <- T
+group_analysis <- T

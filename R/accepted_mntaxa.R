@@ -24,7 +24,6 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
                             common = FALSE,
                             cvals = FALSE,
                             exclude = FALSE) {
-
   # format taxa names
   taxa <- taxa_mntaxa(
     taxonomy_levels = taxonomy_levels,
@@ -34,23 +33,19 @@ accepted_mntaxa <- function(taxonomy_levels = FALSE,
 
   # add releve taxa if selected
   if (releve) {
-
     # add taxon name and optionally taxonomy levels and sources
     dat <- syns_raw |>
       dplyr::filter(!is.na(d_list_beg_date) & is.na(d_list_end_date)) |>
       dplyr::distinct(taxon_id, synonymy_id) |>
       dplyr::full_join(releve_taxa |>
-                         dplyr::distinct(taxon_id, synonymy_id)) |>
+        dplyr::distinct(taxon_id, synonymy_id)) |>
       dplyr::left_join(taxa, by = "taxon_id")
-
   } else {
-
     # add taxon name and optionally taxonomy levels and sources
     dat <- syns_raw |>
       dplyr::filter(!is.na(d_list_beg_date) & is.na(d_list_end_date)) |>
       dplyr::distinct(taxon_id, synonymy_id) |>
       dplyr::left_join(taxa, by = "taxon_id")
-
   }
 
   # add physcodes

@@ -458,14 +458,18 @@ get_dupes(groups_fin, taxon_id) %>%
 releve_code <- releve_taxa %>%
   select(taxon_id, taxon) %>%
   arrange(taxon) %>%
-  mutate(acc_assignment = taxon,
-         analysis_code = c("Epilobium ecological group 1",
-                           "Epilobium ecological group 2",
-                           "Helianthus ecological group",
-                           "Rubus ecological group",
-                           "Rubus ecological group",
-                           "Vaccinium (Blueberry) and Vaccinium angustifolium",
-                           "Vaccinium (Blueberry) and Vaccinium angustifolium"))
+  mutate(
+    acc_assignment = taxon,
+    analysis_code = c(
+      "Epilobium ecological group 1",
+      "Epilobium ecological group 2",
+      "Helianthus ecological group",
+      "Rubus ecological group",
+      "Rubus ecological group",
+      "Vaccinium (Blueberry) and Vaccinium angustifolium",
+      "Vaccinium (Blueberry) and Vaccinium angustifolium"
+    )
+  )
 
 # add releve taxa
 groups_fin2 <- groups_fin %>%

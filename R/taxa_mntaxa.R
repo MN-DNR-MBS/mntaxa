@@ -12,7 +12,6 @@
 taxa_mntaxa <- function(taxonomy_levels = FALSE,
                         sources = FALSE,
                         releve = FALSE) {
-
   # save hybrid name with symbol and without
   # remove \t at end of one name
   taxa <- taxa_raw |>
@@ -75,7 +74,8 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
         dplyr::rename(author_id = id) |>
         dplyr::select(author_id, author)) |>
       dplyr::mutate(author = dplyr::if_else(
-        author == "", NA_character_, author)) |>
+        author == "", NA_character_, author
+      )) |>
       dplyr::left_join(pubs_raw |>
         dplyr::rename(
           publication_id = id,
@@ -85,21 +85,17 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
   }
 
   # add taxa from releves (hard-coded groups, not in MNTaxa)
-  if(releve){
+  if (releve) {
+    # add rank if requested
+    if (taxonomy_levels) {
+      releve_taxa <- releve_taxa |>
+        dplyr::mutate(rank = "group")
+    }
 
-  # add rank if requested
-  if(taxonomy_levels){
-
-    releve_taxa <- releve_taxa |>
-      dplyr::mutate(rank = "group")
-
-  }
-
-  # add to taxa
-  taxa <- taxa |>
-    dplyr::full_join(releve_taxa |>
-                       dplyr::select(-synonymy_id))
-
+    # add to taxa
+    taxa <- taxa |>
+      dplyr::full_join(releve_taxa |>
+        dplyr::select(-synonymy_id))
   }
 
   # remove unnecessary ID columns

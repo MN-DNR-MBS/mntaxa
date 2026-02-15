@@ -14,6 +14,7 @@ load_mntaxa(
   common = FALSE,
   cvals = FALSE,
   exclude = FALSE,
+  source = c("package", "database"),
   envir = .GlobalEnv
 )
 }
@@ -35,6 +36,8 @@ load_mntaxa(
 \item{cvals}{Binary option (TRUE, FALSE) to load c-value table.}
 
 \item{exclude}{Binary option (TRUE, FALSE) to load tables containing information about excluding taxa from analyses.}
+
+\item{source}{Character string of either package (default) or database. Database requires user to set up connection on their own.}
 
 \item{envir}{The environment where tables will be loaded (default is user's global environment).}
 }

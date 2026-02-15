@@ -81,10 +81,12 @@ syn_comm_raw <- syn_comm_raw |>
 
 # syn_cvals_raw: used in accepted_mntaxa() (cvals branch)
 syn_cvals_raw <- syn_cvals_raw |>
-  dplyr::select(synonymy_id,
-                conservationism_coefficient,
-                end_date,
-                publication_id)
+  dplyr::select(
+    synonymy_id,
+    conservationism_coefficient,
+    end_date,
+    publication_id
+  )
 
 # syn_exclude_raw: used in accepted_mntaxa() (exclude branch)
 syn_exclude_raw <- syn_exclude_raw |>

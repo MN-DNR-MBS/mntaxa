@@ -8,9 +8,11 @@ library(taxizedb)
 
 # get taxonomy info
 # format taxa names
-taxa <- taxa_mntaxa(taxonomy_levels = TRUE,
-                    sources = FALSE,
-                    releve = FALSE)
+taxa <- taxa_mntaxa(
+  taxonomy_levels = TRUE,
+  sources = FALSE,
+  releve = FALSE
+)
 
 # format accepted names
 acc <- accepted_mntaxa(
@@ -725,13 +727,17 @@ get_dupes(acc_pars4, acc_taxon_id)
 
 # get genera
 releve_pars <- releve_taxa %>%
-  transmute(acc_taxon_id = taxon_id,
-            acc_taxon = taxon,
-            acc_rank = "group",
-            acc_genus = word(taxon, 1)) %>%
+  transmute(
+    acc_taxon_id = taxon_id,
+    acc_taxon = taxon,
+    acc_rank = "group",
+    acc_genus = word(taxon, 1)
+  ) %>%
   left_join(acc_pars4 %>%
-              distinct(acc_genus, acc_family, acc_order, acc_class,
-                       acc_phylum, acc_kingdom, acc_taxonomy_source))
+    distinct(
+      acc_genus, acc_family, acc_order, acc_class,
+      acc_phylum, acc_kingdom, acc_taxonomy_source
+    ))
 
 # check for duplicates
 get_dupes(releve_pars, acc_taxon_id)

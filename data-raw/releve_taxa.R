@@ -15,7 +15,8 @@ releve_taxa <- data.frame(
     "Rubus alleghenisis group",
     "Vaccinium (Blueberry)",
     "Vaccinium (Blueberry)"
-  )) |>
+  )
+) |>
   dplyr::mutate(synonymy_id = as.numeric(paste0("1000000", taxon_id)))
 
 # save
