@@ -5,7 +5,19 @@
 [![R-CMD-check](https://github.com/MN-DNR-MBS/mntaxa/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/MN-DNR-MBS/mntaxa/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The goal of mntaxa is to easily load and format MNTaxa tables for analysis. Users connected to the MNTaxa database can access the most updated tables while all other users can access a snapshot of tables.
+MNTaxa is the Minnesota Department of Natural Resource's list of vascular plant species that have been documented in Minnesota. It contains a list of accepted names, synonyms, and attributes. The goal of the mntaxa package is to easily load and format MNTaxa tables for analysis. Users connected to the MNTaxa database can access the most updated tables while all other users can access a snapshot of tables.  
+
+### DNR Users  
+
+If you would like to pull "live" MNTaxa tables, please configure the MNTaxa ODBC DSN on your computer before using this package.  
+
+### External Users  
+
+The MNTaxa tables included in this version of mntaxa (1.0.0) were saved on February 26, 2026. Data objects such as taxa_raw contain date attributes that can be used to further investigate the status of the tables if needed.  
+
+### Attributes  
+
+Attributes that can included in MNTaxa tables include rank, taxonomic parents, authorities, publications, physiognomy (including a revised version used for vegetation classification), origins, common names, and C-values.  
 
 ## Installation
 
@@ -54,3 +66,7 @@ lookup <- lookup_mntaxa(taxonomy_levels = F,
                         group_accepted = T,
                         group_analysis = T)
 ```
+
+## Acknowledgements  
+
+The MNTaxa database is managed by Derek Anderson and Jared Cruz, who both contributed to the development of this package. Alaina Berger, Daniel Wovcha, Dustin Graham, and Nathan Dahlberg also helped develop the datasets used in this package. For more information on MNTaxa, please visit [https://www.dnr.state.mn.us/eco/mbs/plant-lists.html](https://www.dnr.state.mn.us/eco/mbs/plant-lists.html).
