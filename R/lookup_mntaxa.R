@@ -17,6 +17,7 @@
 #' @param excluded_duplicates Binary option (TRUE, FALSE) to reduce multiple accepted name assignments for a taxon_id by removing those with exclusions documented in MNTaxa.
 #' @param clean_duplicates Binary option (TRUE, FALSE) to remove duplicate accepted name assignments by assigning a taxon to itself when available and assigning the most likely taxon for a handful of hand-curated duplicates. Recommended for one-to-one taxon-to-accepted look-up table.
 #' @param group_accepted Binary option (TRUE, FALSE) to group all potential accepted names. Recommended for one-to-one taxon id-to-taxonomic group look-up table.
+#' @param group_analysis Binary option (TRUE, FALSE) to group by analysis groups. Recommended for analyses that include historical data.
 
 #'
 #' @returns Tibble of taxon names paired with accepted names and optional attributes. If both `clean_duplicates` and `group_accepted` are selected, `group_accepted` will be used.

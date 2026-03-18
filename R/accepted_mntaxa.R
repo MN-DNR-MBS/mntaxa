@@ -14,7 +14,7 @@
 #' @export
 #'
 #' @examples
-#' accepted <- accpeted_mntaxa()
+#' accepted <- accepted_mntaxa()
 accepted_mntaxa <- function(taxonomy_levels = FALSE,
                             sources = FALSE,
                             releve = FALSE,

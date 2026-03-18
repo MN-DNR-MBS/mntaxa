@@ -42,5 +42,5 @@ Tibble of currently accepted taxa in MNTaxa and any additional information reque
 Create table of accepted taxa
 }
 \examples{
-accepted <- accpeted_mntaxa()
+accepted <- accepted_mntaxa()
 }

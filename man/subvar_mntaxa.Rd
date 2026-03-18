@@ -31,8 +31,6 @@ subvar_mntaxa(
 \item{cvals}{Binary option (TRUE, FALSE) to include c-values.}
 
 \item{exclude}{Binary option (TRUE, FALSE) to include information about excluding taxa from analyses.}
-
-\item{taxonomy_levels}{Binary option (TRUE, FALSE) to include rank of taxa and taxonomic parents.}
 }
 \value{
 Tibble with acc_taxon_id corresponding to the subspecies/variety and columns for accepted taxon attributes associated with the corresponding species and ending with "_rep" so that they can be used to replace subspecies/variety attributes.

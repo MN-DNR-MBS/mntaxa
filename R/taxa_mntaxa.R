@@ -18,7 +18,7 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
     dplyr::rename(taxon_id = id) |>
     dplyr::mutate(
       hybrid = dplyr::case_when(
-        stringr::str_detect(taxon, "×") ~ taxon,
+        stringr::str_detect(taxon, "\\u00d7") ~ taxon,
         taxon %in% c(
           "Potentilla hippiana",
           "Staphylea trifolia"
@@ -26,15 +26,15 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
         is_hybrid == 1 ~ taxon,
         TRUE ~ NA_character_
       ) |>
-        stringr::str_replace_all("\\ x\\ ", "\\ ×\\ ") |>
-        stringr::str_replace_all("\\ x", "\\ ×"),
+        stringr::str_replace_all("\\ x\\ ", "\\ \\u00d7\\ ") |>
+        stringr::str_replace_all("\\ x", "\\ \\u00d7"),
       hybrid = dplyr::if_else(stringr::str_sub(hybrid, 1, 1) == "x",
-        sub("^.", "×", hybrid),
+        sub("^.", "\\u00d7", hybrid),
         hybrid
       ),
       taxon = dplyr::if_else(!is.na(hybrid),
         hybrid |>
-          stringr::str_replace_all("×", "x ") |>
+          stringr::str_replace_all("\\u00d7", "x ") |>
           stringr::str_replace_all("x  ", "x "),
         taxon |>
           stringr::str_remove("\\\t")
@@ -43,7 +43,7 @@ taxa_mntaxa <- function(taxonomy_levels = FALSE,
         hybrid_parents, "\\ X\\ ",
         "\\ x\\ "
       ) |>
-        stringr::str_replace("\\ ×\\ ", "\\ x\\ "),
+        stringr::str_replace("\\ \\u00d7\\ ", "\\ x\\ "),
       hybrid_parents = dplyr::if_else(hybrid_parents == "", NA_character_,
         hybrid_parents
       )

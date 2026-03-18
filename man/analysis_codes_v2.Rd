@@ -12,7 +12,7 @@ A data frame with 2,522 rows and 4 columns:
 \item{taxon_id}{ID of taxon in MNTaxa database.}
 \item{taxon}{Name of taxon in MNTaxa database.}
 \item{acc_assignment}{Accepted taxon assignment based on lookup_mntaxa. Note that these are not as stable as taxon ID or taxon, but can provide some context.}
-\itemt{analysis_code}{Code that groups together taxa that should be analyzed as a single taxon.}
+\item{analysis_code}{Code that groups together taxa that should be analyzed as a single taxon.}
 }
 }
 }
